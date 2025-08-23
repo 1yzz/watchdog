@@ -1,0 +1,76 @@
+syntax = "proto3";
+
+package watchdog;
+
+option go_package = "watchdog/api";
+
+enum ServiceType {
+  SERVICE_TYPE_UNSPECIFIED = 0;
+  SERVICE_TYPE_HTTP = 1;
+  SERVICE_TYPE_GRPC = 2;
+  SERVICE_TYPE_DATABASE = 3;
+  SERVICE_TYPE_CACHE = 4;
+  SERVICE_TYPE_QUEUE = 5;
+  SERVICE_TYPE_STORAGE = 6;
+  SERVICE_TYPE_EXTERNAL_API = 7;
+  SERVICE_TYPE_MICROSERVICE = 8;
+  SERVICE_TYPE_OTHER = 9;
+}
+
+service WatchdogService {
+  rpc GetHealth(HealthRequest) returns (HealthResponse);
+  rpc RegisterService(RegisterServiceRequest) returns (RegisterServiceResponse);
+  rpc UnregisterService(UnregisterServiceRequest) returns (UnregisterServiceResponse);
+  rpc ListServices(ListServicesRequest) returns (ListServicesResponse);
+  rpc UpdateServiceStatus(UpdateServiceStatusRequest) returns (UpdateServiceStatusResponse);
+}
+
+message HealthRequest {}
+
+message HealthResponse {
+  string status = 1;
+  string message = 2;
+}
+
+message ServiceInfo {
+  string id = 1;
+  string name = 2;
+  string endpoint = 3;
+  string status = 4;
+  int64 last_heartbeat = 5;
+  ServiceType type = 6;
+}
+
+message RegisterServiceRequest {
+  string name = 1;
+  string endpoint = 2;
+  ServiceType type = 3;
+}
+
+message RegisterServiceResponse {
+  string service_id = 1;
+  string message = 2;
+}
+
+message UnregisterServiceRequest {
+  string service_id = 1;
+}
+
+message UnregisterServiceResponse {
+  string message = 1;
+}
+
+message ListServicesRequest {}
+
+message ListServicesResponse {
+  repeated ServiceInfo services = 1;
+}
+
+message UpdateServiceStatusRequest {
+  string service_id = 1;
+  string status = 2;
+}
+
+message UpdateServiceStatusResponse {
+  string message = 1;
+}
