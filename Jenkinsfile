@@ -137,32 +137,49 @@ pipeline {
                     export GOPATH=$HOME/go
                     export PATH=$PATH:$GOPATH/bin
                     
-                    echo "🚀 Deploying Watchdog locally..."
+                    echo "🚀 Deploying Watchdog locally using systemd..."
                     
-                    # Stop existing process if running
-                    pkill -f "watchdog-server" || true
+                    # Stop existing service if running
+                    sudo systemctl stop watchdog.service || true
+                    sudo systemctl disable watchdog.service || true
                     
                     # Create data directory with proper permissions
                     sudo mkdir -p /var/lib/watchdog
                     sudo chown jenkins:jenkins /var/lib/watchdog
-                    
-                    # Create log directory with proper permissions
-                    sudo mkdir -p /var/log
-                    sudo touch /var/log/watchdog.log
-                    sudo chown jenkins:jenkins /var/log/watchdog.log
+                    sudo chmod 755 /var/lib/watchdog
                     
                     # Copy binary to deployment location
                     sudo cp bin/watchdog-server /usr/local/bin/watchdog-server
                     sudo chmod +x /usr/local/bin/watchdog-server
                     
-                    # Start the service in background (gRPC only)
-                    WATCHDOG_SERVICE_MODE=1 nohup /usr/local/bin/watchdog-server > /var/log/watchdog.log 2>&1 &
+                    # Copy systemd service file if it doesn't exist
+                    if [ ! -f /etc/systemd/system/watchdog.service ]; then
+                        echo "Installing watchdog systemd service..."
+                        sudo cp scripts/watchdog.service /etc/systemd/system/watchdog.service
+                        sudo chmod 644 /etc/systemd/system/watchdog.service
+                        sudo systemctl daemon-reload
+                        sudo systemctl enable watchdog.service
+                    else
+                        echo "Watchdog systemd service already exists, skipping installation"
+                    fi
                     
-                    echo $! > /tmp/watchdog.pid
+                    # Copy configuration files if they exist
+                    if [ -f .env ]; then
+                        sudo cp .env /var/lib/watchdog/.env
+                        sudo chown jenkins:jenkins /var/lib/watchdog/.env
+                        sudo chmod 600 /var/lib/watchdog/.env
+                    fi
+                    
+                    # Restart service
+                    sudo systemctl restart watchdog.service
                     
                     # Wait for service to start
                     echo "Waiting for service to start..."
                     sleep 10
+                    
+                    # Check service status
+                    echo "Service status:"
+                    sudo systemctl status watchdog.service --no-pager -l
                     
                     # gRPC health check with retry
                     echo "Performing gRPC health check..."
@@ -170,8 +187,8 @@ pipeline {
                         if grpcurl -plaintext 127.0.0.1:50051 watchdog.WatchdogService/GetHealth > /dev/null 2>&1; then
                             echo "✅ Watchdog deployed successfully!"
                             echo "🔗 gRPC endpoint: localhost:50051"
-                            echo "📝 Logs: /var/log/watchdog.log"
-                            echo "📊 PID: $(cat /tmp/watchdog.pid)"
+                            echo "📝 Logs: journalctl -u watchdog.service"
+                            echo "📊 Service: watchdog.service"
                             
                             # Show health status
                             echo "🏥 Health status:"
@@ -184,7 +201,7 @@ pipeline {
                     
                     echo "❌ Deployment failed - gRPC service not responding after 60s"
                     echo "Service logs:"
-                    tail -20 /var/log/watchdog.log
+                    sudo journalctl -u watchdog.service --no-pager -n 20
                     exit 1
                 '''
             }
@@ -192,8 +209,8 @@ pipeline {
                 failure {
                     sh '''
                         echo "🔍 Deployment failed, collecting debug info..."
-                        ps aux | grep watchdog || true
-                        tail -50 /var/log/watchdog.log || true
+                        sudo systemctl status watchdog.service --no-pager -l || true
+                        sudo journalctl -u watchdog.service --no-pager -n 50 || true
                     '''
                 }
             }

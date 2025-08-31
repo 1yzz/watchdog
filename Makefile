@@ -181,6 +181,11 @@ help:
 	@echo "  server-start-bg    - Start server in background"
 	@echo "  server-stop        - Stop background server"
 	@echo "  test-integration   - Run integration tests"
+	@echo ""
+	@echo "Systemd Commands:"
+	@echo "  service-install    - Install systemd service"
+	@echo "  service-restart    - Restart systemd service"
+	@echo "  service-status     - Show service status"
 
 # CI/CD targets for Jenkins
 .PHONY: server-start-bg server-stop test-integration
@@ -201,3 +206,21 @@ test-integration:
 	# Add your integration tests here
 	# For example: go test -tags=integration ./tests/integration/...
 	@echo "Integration tests completed"
+
+# Systemd service management
+.PHONY: service-install service-restart service-status
+
+service-install:
+	@echo "Installing watchdog systemd service..."
+	sudo cp scripts/watchdog.service /etc/systemd/system/
+	sudo systemctl daemon-reload
+	sudo systemctl enable watchdog.service
+	@echo "Service installed and enabled"
+
+service-restart:
+	@echo "Restarting watchdog service..."
+	sudo systemctl restart watchdog.service
+
+service-status:
+	@echo "Watchdog service status:"
+	sudo systemctl status watchdog.service --no-pager -l

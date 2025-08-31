@@ -1,0 +1,20 @@
+[Unit]
+Description=Watchdog gRPC Server
+After=network.target mysql.service
+Wants=mysql.service
+
+[Service]
+Type=simple
+User=jenkins
+Group=jenkins
+WorkingDirectory=/var/lib/watchdog
+ExecStart=/usr/local/bin/watchdog-server
+Environment=WATCHDOG_SERVICE_MODE=1
+Restart=always
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=watchdog
+
+[Install]
+WantedBy=multi-user.target
