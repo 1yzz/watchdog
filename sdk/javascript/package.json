@@ -1,0 +1,67 @@
+{
+  "name": "watchdog-grpc-sdk",
+  "version": "1.0.2",
+  "description": "JavaScript/Node.js SDK for Watchdog gRPC Service",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist/",
+    "proto/",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "npm run proto:generate && npm run compile",
+    "proto:generate": "npm run proto:js && npm run proto:ts",
+    "proto:js": "npx grpc_tools_node_protoc --proto_path=../../proto --js_out=import_style=commonjs,binary:./src/generated --grpc_out=grpc_js:./src/generated ../../proto/watchdog.proto",
+    "proto:ts": "npx grpc_tools_node_protoc --proto_path=../../proto --plugin=protoc-gen-ts=./node_modules/.bin/protoc-gen-ts --ts_out=grpc_js:./src/generated ../../proto/watchdog.proto",
+    "compile": "tsc && npm run copy:generated",
+    "copy:generated": "mkdir -p dist/generated && cp src/generated/*.js dist/generated/",
+    "prepare": "npm run build",
+    "prepublishOnly": "npm run build",
+    "test": "jest --passWithNoTests",
+    "lint": "eslint src/**/*.ts",
+    "docs": "typedoc src/index.ts",
+    "example:basic": "node examples/basic-usage.js",
+    "example:typescript": "npx ts-node examples/typescript-usage.ts"
+  },
+  "keywords": [
+    "grpc",
+    "watchdog",
+    "service-discovery",
+    "monitoring",
+    "microservices",
+    "protobuf"
+  ],
+  "author": "Watchdog Team",
+  "license": "MIT",
+  "dependencies": {
+    "@grpc/grpc-js": "^1.9.0",
+    "@grpc/proto-loader": "^0.7.0",
+    "google-protobuf": "^3.21.0"
+  },
+  "devDependencies": {
+    "@types/google-protobuf": "^3.15.0",
+    "@types/node": "^20.0.0",
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0",
+    "eslint": "^8.0.0",
+    "grpc-tools": "^1.12.0",
+    "grpc_tools_node_protoc_ts": "^5.3.0",
+    "jest": "^29.0.0",
+    "ts-jest": "^29.0.0",
+    "typedoc": "^0.25.0",
+    "typescript": "^5.0.0"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-org/watchdog.git",
+    "directory": "sdk/javascript"
+  },
+  "bugs": {
+    "url": "https://github.com/your-org/watchdog/issues"
+  },
+  "homepage": "https://github.com/your-org/watchdog/tree/main/sdk/javascript#readme"
+}
