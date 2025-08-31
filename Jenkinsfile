@@ -167,7 +167,7 @@ pipeline {
                     # gRPC health check with retry
                     echo "Performing gRPC health check..."
                     for i in {1..12}; do
-                        if grpcurl -plaintext localhost:50051 watchdog.WatchdogService/GetHealth > /dev/null 2>&1; then
+                        if grpcurl -plaintext 127.0.0.1:50051 watchdog.WatchdogService/GetHealth > /dev/null 2>&1; then
                             echo "✅ Watchdog deployed successfully!"
                             echo "🔗 gRPC endpoint: localhost:50051"
                             echo "📝 Logs: /var/log/watchdog.log"
@@ -175,7 +175,7 @@ pipeline {
                             
                             # Show health status
                             echo "🏥 Health status:"
-                            grpcurl -plaintext localhost:50051 watchdog.WatchdogService/GetHealth
+                            grpcurl -plaintext 127.0.0.1:50051 watchdog.WatchdogService/GetHealth
                             exit 0
                         fi
                         echo "gRPC health check attempt ${i}/12 failed, retrying in 5s..."
