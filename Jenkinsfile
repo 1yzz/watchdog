@@ -73,6 +73,26 @@ pipeline {
                 sh '''
                     # Set Go environment
                     export PATH=/usr/local/go${GO_VERSION}/bin:$PATH
+                    export GOPATH=$HOME/go
+                    export PATH=$PATH:$GOPATH/bin
+                    
+                    # Verify Go tools are available
+                    which go${GO_VERSION}
+                    which protoc-gen-go || echo "protoc-gen-go not found, installing..."
+                    which protoc-gen-go-grpc || echo "protoc-gen-go-grpc not found, installing..."
+                    
+                    # Install Go protobuf tools if not available
+                    if ! command -v protoc-gen-go &> /dev/null; then
+                        go${GO_VERSION} install google.golang.org/protobuf/cmd/protoc-gen-go@latest
+                    fi
+                    
+                    if ! command -v protoc-gen-go-grpc &> /dev/null; then
+                        go${GO_VERSION} install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
+                    fi
+                    
+                    # Verify tools are now available
+                    protoc-gen-go --version
+                    protoc-gen-go-grpc --version
                     
                     # Generate protobuf code
                     make proto
