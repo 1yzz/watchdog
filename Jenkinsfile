@@ -137,8 +137,14 @@ pipeline {
                     # Stop existing process if running
                     pkill -f "watchdog-server" || true
                     
-                    # Create data directory
-                    mkdir -p /var/lib/watchdog
+                    # Create data directory with proper permissions
+                    sudo mkdir -p /var/lib/watchdog
+                    sudo chown jenkins:jenkins /var/lib/watchdog
+                    
+                    # Create log directory with proper permissions
+                    sudo mkdir -p /var/log
+                    sudo touch /var/log/watchdog.log
+                    sudo chown jenkins:jenkins /var/log/watchdog.log
                     
                     # Copy binary to deployment location
                     sudo cp bin/watchdog-server /usr/local/bin/watchdog-server
@@ -151,7 +157,7 @@ pipeline {
                         --database-url="sqlite:///var/lib/watchdog/watchdog.db" \\
                         --log-level=info > /var/log/watchdog.log 2>&1 &
                     
-                    echo $! > /var/run/watchdog.pid
+                    echo $! > /tmp/watchdog.pid
                     
                     # Wait for service to start
                     echo "Waiting for service to start..."
@@ -165,7 +171,7 @@ pipeline {
                             echo "🔗 gRPC endpoint: localhost:50051"
                             echo "🔗 HTTP endpoint: http://localhost:8080"
                             echo "📝 Logs: /var/log/watchdog.log"
-                            echo "📊 PID: $(cat /var/run/watchdog.pid)"
+                            echo "📊 PID: $(cat /tmp/watchdog.pid)"
                             exit 0
                         fi
                         echo "Health check attempt ${i}/12 failed, retrying in 5s..."
