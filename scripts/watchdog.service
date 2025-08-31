@@ -8,7 +8,7 @@ Type=simple
 User=jenkins
 Group=jenkins
 WorkingDirectory=/var/lib/watchdog
-ExecStart=/usr/local/bin/watchdog-server
+ExecStart=/var/lib/watchdog/watchdog-server
 Environment=WATCHDOG_SERVICE_MODE=1
 Restart=always
 RestartSec=5

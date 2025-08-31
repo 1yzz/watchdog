@@ -148,9 +148,9 @@ pipeline {
                     sudo chown jenkins:jenkins /var/lib/watchdog
                     sudo chmod 755 /var/lib/watchdog
                     
-                    # Copy binary to deployment location
-                    sudo cp bin/watchdog-server /usr/local/bin/watchdog-server
-                    sudo chmod +x /usr/local/bin/watchdog-server
+                    # Copy binary to data directory
+                    sudo cp bin/watchdog-server /var/lib/watchdog/watchdog-server
+                    sudo chmod +x /var/lib/watchdog/watchdog-server
                     
                     # Copy systemd service file if it doesn't exist
                     if [ ! -f /etc/systemd/system/watchdog.service ]; then
@@ -161,13 +161,6 @@ pipeline {
                         sudo systemctl enable watchdog.service
                     else
                         echo "Watchdog systemd service already exists, skipping installation"
-                    fi
-                    
-                    # Copy configuration files if they exist
-                    if [ -f .env ]; then
-                        sudo cp .env /var/lib/watchdog/.env
-                        sudo chown jenkins:jenkins /var/lib/watchdog/.env
-                        sudo chmod 600 /var/lib/watchdog/.env
                     fi
                     
                     # Restart service
