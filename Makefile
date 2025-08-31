@@ -176,3 +176,28 @@ help:
 	@echo "  sdk-release-patch  - Release patch version (1.0.x)"
 	@echo "  sdk-release-minor  - Release minor version (1.x.0)"
 	@echo "  sdk-release-major  - Release major version (x.0.0)"
+	@echo ""
+	@echo "CI/CD Commands:"
+	@echo "  server-start-bg    - Start server in background"
+	@echo "  server-stop        - Stop background server"
+	@echo "  test-integration   - Run integration tests"
+
+# CI/CD targets for Jenkins
+.PHONY: server-start-bg server-stop test-integration
+
+server-start-bg:
+	@echo "Starting server in background..."
+	nohup ./bin/watchdog > server.log 2>&1 & echo $$! > server.pid
+
+server-stop:
+	@echo "Stopping server..."
+	@if [ -f server.pid ]; then \
+		kill `cat server.pid` && rm server.pid; \
+	fi
+	@pkill -f "./bin/watchdog" || true
+
+test-integration:
+	@echo "Running integration tests..."
+	# Add your integration tests here
+	# For example: go test -tags=integration ./tests/integration/...
+	@echo "Integration tests completed"

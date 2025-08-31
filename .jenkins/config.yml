@@ -1,0 +1,106 @@
+# Jenkins Configuration for Watchdog Project
+jenkins:
+  # Pipeline configuration
+  pipeline:
+    triggers:
+      - pollSCM: 'H/5 * * * *'  # Poll every 5 minutes
+      - cron: 'H 2 * * *'       # Nightly build at 2 AM
+    
+    # Build retention
+    buildDiscarder:
+      daysToKeep: 30
+      numToKeep: 50
+      artifactDaysToKeep: 7
+      artifactNumToKeep: 10
+    
+    # Parallel execution
+    parallelStages: true
+    
+    # Timeout
+    timeout: 60  # minutes
+
+  # Environment variables
+  environment:
+    GO_VERSION: '1.21'
+    NODE_VERSION: '18'
+    DOCKER_REGISTRY: 'your-registry.com'
+    IMAGE_NAME: 'watchdog'
+    
+  # Credentials needed
+  credentials:
+    - id: 'docker-registry-credentials'
+      description: 'Docker registry credentials'
+      type: 'usernamePassword'
+    
+    - id: 'npm-token'
+      description: 'NPM registry token'
+      type: 'secret'
+    
+    - id: 'slack-webhook'
+      description: 'Slack webhook for notifications'
+      type: 'secret'
+    
+    - id: 'k8s-config'
+      description: 'Kubernetes config for deployment'
+      type: 'file'
+
+  # Required plugins
+  plugins:
+    - docker-pipeline
+    - kubernetes
+    - slack
+    - html-publisher
+    - test-results-analyzer
+    - pipeline-stage-view
+    - blue-ocean
+    - nodejs
+    - go
+
+  # Notifications
+  notifications:
+    slack:
+      channel: '#builds'
+      onSuccess: true
+      onFailure: true
+      onUnstable: true
+    
+    email:
+      recipients: ['dev-team@yourcompany.com']
+      onFailure: true
+
+# Quality Gates
+quality:
+  # Code coverage thresholds
+  coverage:
+    go:
+      minimum: 80
+      target: 90
+    
+    javascript:
+      minimum: 70
+      target: 85
+  
+  # Security scan requirements
+  security:
+    gosec:
+      failOnHigh: true
+      failOnMedium: false
+    
+    npm:
+      auditLevel: 'moderate'
+
+# Deployment environments
+environments:
+  staging:
+    branch: 'develop'
+    namespace: 'staging'
+    replicas: 1
+    autoRollback: true
+  
+  production:
+    branch: 'main'
+    namespace: 'production'
+    replicas: 3
+    requireApproval: true
+    autoRollback: true
+    canaryDeployment: true
