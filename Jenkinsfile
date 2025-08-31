@@ -24,11 +24,14 @@ pipeline {
                     echo "Installing Go ${GO_VERSION}..."
                     wget -q https://go.dev/dl/go${GO_VERSION}.linux-amd64.tar.gz
                     sudo rm -rf /usr/local/go${GO_VERSION}
-                    sudo tar -C /usr/local -xzf go${GO_VERSION}.linux-amd64.tar.gz
+                    sudo tar -C /usr/local --transform="s/^go/go${GO_VERSION}/" -xzf go${GO_VERSION}.linux-amd64.tar.gz
                     rm go${GO_VERSION}.linux-amd64.tar.gz
                     
+                    # Create version-specific symlink
+                    sudo ln -sf /usr/local/go${GO_VERSION}/bin/go /usr/local/bin/go${GO_VERSION}
+                    
                     # Set Go environment
-                    export PATH=$PATH:/usr/local/go${GO_VERSION}/bin
+                    export PATH=/usr/local/go${GO_VERSION}/bin:$PATH
                     export GOPATH=$HOME/go
                     export PATH=$PATH:$GOPATH/bin
                     
@@ -47,7 +50,7 @@ pipeline {
                     if ! command -v protoc &> /dev/null; then
                         echo "Installing protoc..."
                         wget -q https://github.com/protocolbuffers/protobuf/releases/download/v24.4/protoc-24.4-linux-x86_64.zip
-                        sudo unzip -q protoc-24.4-linux-x86_64.zip -d /usr/local/go${GO_VERSION}
+                        sudo unzip -q protoc-24.4-linux-x86_64.zip -d /usr/local
                         rm protoc-24.4-linux-x86_64.zip
                     fi
                     
@@ -88,6 +91,9 @@ pipeline {
         stage('Test') {
             steps {
                 sh '''
+                    # Set Go environment
+                    export PATH=/usr/local/go${GO_VERSION}/bin:$PATH
+                    
                     # Run Go tests
                     go${GO_VERSION} test -v ./...
                 '''
