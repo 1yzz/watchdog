@@ -151,6 +151,20 @@ pipeline {
                     export GOPATH=$HOME/go
                     export PATH=$PATH:$GOPATH/bin
                     
+                    # Install grpcurl if not available
+                    if ! command -v grpcurl &> /dev/null; then
+                        echo "Installing grpcurl..."
+                        go${GO_VERSION} install github.com/fullstorydev/grpcurl/cmd/grpcurl@latest
+                        export PATH=$PATH:$GOPATH/bin
+                    fi
+                    
+                    # Verify grpcurl is available
+                    if ! command -v grpcurl &> /dev/null; then
+                        echo "❌ Failed to install grpcurl"
+                        exit 1
+                    fi
+                    echo "✅ grpcurl installed: $(grpcurl --version)"
+                    
                     echo "🚀 Deploying Watchdog locally using systemd..."
                     
                     # Stop existing service and disable auto-restart
@@ -219,6 +233,15 @@ pipeline {
                         echo "Checking if service is listening on port 50051..."
                         if sudo netstat -tlnp 2>/dev/null | grep :50051 || sudo ss -tlnp 2>/dev/null | grep :50051; then
                             echo "✅ Port 50051 is listening"
+                            
+                            # Check dual-stack support
+                            echo "Checking dual-stack support..."
+                            if sudo netstat -tlnp 2>/dev/null | grep ":50051" | grep -q "tcp6"; then
+                                echo "✅ IPv6 support detected (tcp6)"
+                            fi
+                            if sudo netstat -tlnp 2>/dev/null | grep ":50051" | grep -q "tcp"; then
+                                echo "✅ IPv4 support detected (tcp)"
+                            fi
                         else
                             echo "❌ Port 50051 is not listening"
                             sudo journalctl -u watchdog.service --no-pager -n 10
@@ -232,7 +255,7 @@ pipeline {
                         
                         # Try to list available services (IPv6)
                         echo "Listing available gRPC services (IPv6)..."
-                        grpcurl -plaintext [::1]:50051 list 2>&1 || echo "Failed to list services via IPv6"
+                        grpcurl -plaintext "[::1]:50051" list 2>&1 || echo "Failed to list services via IPv6"
                         
                         # Try to list methods in WatchdogService (IPv4)
                         echo "Listing methods in WatchdogService (IPv4)..."
@@ -240,7 +263,7 @@ pipeline {
                         
                         # Try to list methods in WatchdogService (IPv6)
                         echo "Listing methods in WatchdogService (IPv6)..."
-                        grpcurl -plaintext [::1]:50051 list watchdog.WatchdogService 2>&1 || echo "Failed to list methods via IPv6"
+                        grpcurl -plaintext "[::1]:50051" list watchdog.WatchdogService 2>&1 || echo "Failed to list methods via IPv6"
                         
                         # Now try the health check (try both IPv4 and IPv6)
                         echo "Trying health check via IPv4..."
@@ -253,7 +276,7 @@ pipeline {
                             sudo systemctl daemon-reload
                             sudo systemctl enable watchdog.service
                             
-                            echo "🔗 gRPC endpoint: localhost:50051"
+                            echo "🔗 gRPC endpoint: 127.0.0.1:50051 (IPv4)"
                             echo "📝 Logs: journalctl -u watchdog.service"
                             echo "📊 Service: watchdog.service"
                             
@@ -264,7 +287,7 @@ pipeline {
                         fi
                         
                         echo "IPv4 health check failed, trying IPv6..."
-                        if grpcurl -plaintext [::1]:50051 watchdog.WatchdogService/GetHealth > /dev/null 2>&1; then
+                        if grpcurl -plaintext "[::1]:50051" watchdog.WatchdogService/GetHealth > /dev/null 2>&1; then
                             echo "✅ Watchdog deployed successfully via IPv6!"
                             
                             # Re-enable auto-restart for production
@@ -273,13 +296,13 @@ pipeline {
                             sudo systemctl daemon-reload
                             sudo systemctl enable watchdog.service
                             
-                            echo "🔗 gRPC endpoint: [::1]:50051"
+                            echo "🔗 gRPC endpoint: [::1]:50051 (IPv6)"
                             echo "📝 Logs: journalctl -u watchdog.service"
                             echo "📊 Service: watchdog.service"
                             
                             # Show health status
                             echo "🏥 Health status:"
-                            grpcurl -plaintext [::1]:50051 watchdog.WatchdogService/GetHealth
+                            grpcurl -plaintext "[::1]:50051" watchdog.WatchdogService/GetHealth
                             exit 0
                         fi
                         echo "gRPC health check attempt ${i}/12 failed, retrying in 5s..."
