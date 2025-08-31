@@ -20,17 +20,12 @@ pipeline {
         stage('Setup Build Environment') {
             steps {
                 sh '''
-                    # Check if the correct Go version is installed
-                    CURRENT_GO_VERSION=$(go version 2>/dev/null | grep -o 'go[0-9.]*' | sed 's/go//' || echo "none")
-                    if [ "$CURRENT_GO_VERSION" != "${GO_VERSION}" ]; then
-                        echo "Installing Go ${GO_VERSION}... (current: $CURRENT_GO_VERSION)"
-                        wget -q https://go.dev/dl/go${GO_VERSION}.linux-amd64.tar.gz
-                        sudo rm -rf /usr/local/go
-                        sudo tar -C /usr/local -xzf go${GO_VERSION}.linux-amd64.tar.gz
-                        rm go${GO_VERSION}.linux-amd64.tar.gz
-                    else
-                        echo "Go ${GO_VERSION} already installed"
-                    fi
+                    # Install exact Go version
+                    echo "Installing Go ${GO_VERSION}..."
+                    wget -q https://golang.org/dl/go${GO_VERSION}.linux-amd64.tar.gz
+                    sudo rm -rf /usr/local/go
+                    sudo tar -C /usr/local -xzf go${GO_VERSION}.linux-amd64.tar.gz
+                    rm go${GO_VERSION}.linux-amd64.tar.gz
                     
                     # Set Go environment
                     export PATH=$PATH:/usr/local/go/bin
