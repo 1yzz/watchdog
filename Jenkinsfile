@@ -2,7 +2,7 @@ pipeline {
     agent any
     
     environment {
-        GO_VERSION = '1.21'
+        GO_VERSION = '1.24.6'
         CGO_ENABLED = '0'
         GOOS = 'linux'
     }
@@ -22,7 +22,7 @@ pipeline {
                 sh '''
                     # Install exact Go version
                     echo "Installing Go ${GO_VERSION}..."
-                    wget -q https://golang.org/dl/go${GO_VERSION}.linux-amd64.tar.gz
+                    wget -q https://go.dev/dl/go${GO_VERSION}.linux-amd64.tar.gz
                     sudo rm -rf /usr/local/go
                     sudo tar -C /usr/local -xzf go${GO_VERSION}.linux-amd64.tar.gz
                     rm go${GO_VERSION}.linux-amd64.tar.gz
