@@ -7,8 +7,9 @@ import (
 	"path/filepath"
 	"strconv"
 
-	"github.com/joho/godotenv"
 	"watchdog/database"
+
+	"github.com/joho/godotenv"
 )
 
 type Config struct {
@@ -22,7 +23,7 @@ type ServerConfig struct {
 
 func Load() *Config {
 	loadEnvFile()
-	
+
 	return &Config{
 		Server: ServerConfig{
 			Port: getIntEnv("PORT", 50051),
@@ -40,7 +41,7 @@ func Load() *Config {
 // LoadWithEntClient loads config and creates EntClient with auto-migration
 func LoadWithEntClient() (*Config, *database.EntClient, error) {
 	config := Load()
-	
+
 	entClient, err := database.NewEntClient(config.Database)
 	if err != nil {
 		return nil, nil, err
@@ -62,22 +63,26 @@ func loadEnvFile() {
 		".env",
 	}
 
-	for _, envFile := range envFiles {
-		if fileExists(envFile) {
-			err := godotenv.Load(envFile)
-			if err != nil {
-				log.Printf("Warning: Error loading %s file: %v", envFile, err)
-			} else {
-				log.Printf("Loaded environment variables from %s", envFile)
-				return
-			}
-		}
+	// Check common locations for .env files
+	searchPaths := []string{
+		".",                 // Current directory
+		"/var/lib/watchdog", // Data directory
 	}
 
-	wd, err := os.Getwd()
-	if err == nil {
+	// Add current working directory to search paths
+	if wd, err := os.Getwd(); err == nil {
+		searchPaths = append(searchPaths, wd)
+	}
+
+	for _, searchPath := range searchPaths {
 		for _, envFile := range envFiles {
-			fullPath := filepath.Join(wd, envFile)
+			var fullPath string
+			if searchPath == "." {
+				fullPath = envFile
+			} else {
+				fullPath = filepath.Join(searchPath, envFile)
+			}
+
 			if fileExists(fullPath) {
 				err := godotenv.Load(fullPath)
 				if err != nil {
