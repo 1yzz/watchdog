@@ -20,31 +20,45 @@ pipeline {
         stage('Setup Build Environment') {
             steps {
                 sh '''
-                    # Install exact Go version
-                    echo "Installing Go ${GO_VERSION}..."
-                    wget -q https://go.dev/dl/go${GO_VERSION}.linux-amd64.tar.gz
-                    sudo rm -rf /usr/local/go${GO_VERSION}
-                    sudo tar -C /usr/local --transform="s/^go/go${GO_VERSION}/" -xzf go${GO_VERSION}.linux-amd64.tar.gz
-                    rm go${GO_VERSION}.linux-amd64.tar.gz
-                    
-                    # Create version-specific symlink
-                    sudo ln -sf /usr/local/go${GO_VERSION}/bin/go /usr/local/bin/go${GO_VERSION}
-                    
-                    # Set Go environment
-                    export PATH=/usr/local/go${GO_VERSION}/bin:$PATH
-                    export GOPATH=$HOME/go
-                    export PATH=$PATH:$GOPATH/bin
-                    
-                    # Verify Go installation
-                    go${GO_VERSION} version
-                    
-                    # Ensure we're using the exact version
-                    INSTALLED_VERSION=$(go${GO_VERSION} version | grep -o 'go[0-9.]*' | sed 's/go//' | tr -d '\n')
-                    if [ "$INSTALLED_VERSION" != "${GO_VERSION}" ]; then
-                        echo "❌ Expected Go ${GO_VERSION}, but got $INSTALLED_VERSION"
-                        exit 1
+                    # Check if Go is already installed
+                    if command -v go${GO_VERSION} &> /dev/null; then
+                        echo "Go ${GO_VERSION} already installed, checking version..."
+                        export PATH=/usr/local/go${GO_VERSION}/bin:$PATH
+                        INSTALLED_VERSION=$(go${GO_VERSION} version | grep -o 'go[0-9.]*' | sed 's/go//' | tr -d '\n')
+                        
+                        if [ "$INSTALLED_VERSION" = "${GO_VERSION}" ]; then
+                            echo "✅ Go ${GO_VERSION} already installed and correct version"
+                        else
+                            echo "❌ Go ${GO_VERSION} installed but wrong version: ${INSTALLED_VERSION}"
+                            exit 1
+                        fi
+                    else
+                        # Install exact Go version
+                        echo "Installing Go ${GO_VERSION}..."
+                        wget -q https://go.dev/dl/go${GO_VERSION}.linux-amd64.tar.gz
+                        sudo rm -rf /usr/local/go${GO_VERSION}
+                        sudo tar -C /usr/local --transform="s/^go/go${GO_VERSION}/" -xzf go${GO_VERSION}.linux-amd64.tar.gz
+                        rm go${GO_VERSION}.linux-amd64.tar.gz
+                        
+                        # Create version-specific symlink
+                        sudo ln -sf /usr/local/go${GO_VERSION}/bin/go /usr/local/bin/go${GO_VERSION}
+                        
+                        # Set Go environment
+                        export PATH=/usr/local/go${GO_VERSION}/bin:$PATH
+                        export GOPATH=$HOME/go
+                        export PATH=$PATH:$GOPATH/bin
+                        
+                        # Verify Go installation
+                        go${GO_VERSION} version
+                        
+                        # Ensure we're using the exact version
+                        INSTALLED_VERSION=$(go${GO_VERSION} version | grep -o 'go[0-9.]*' | sed 's/go//' | tr -d '\n')
+                        if [ "$INSTALLED_VERSION" != "${GO_VERSION}" ]; then
+                            echo "❌ Expected Go ${GO_VERSION}, but got $INSTALLED_VERSION"
+                            exit 1
+                        fi
+                        echo "✅ Go ${GO_VERSION} installed successfully"
                     fi
-                    echo "✅ Using Go ${GO_VERSION}"
                     
                     # Install protoc if not available
                     if ! command -v protoc &> /dev/null; then
