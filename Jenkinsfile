@@ -71,8 +71,11 @@ pipeline {
         stage('Build Server') {
             steps {
                 sh '''
+                    # Set Go environment
+                    export PATH=/usr/local/go${GO_VERSION}/bin:$PATH
+                    
                     # Generate protobuf code
-                    make proto-generate
+                    make proto
                     
                     # Generate Ent database code  
                     make ent-generate
@@ -81,10 +84,10 @@ pipeline {
                     make build
                     
                     # Verify binary
-                    ls -la bin/watchdog
-                    file bin/watchdog
+                    ls -la bin/watchdog-server
+                    file bin/watchdog-server
                 '''
-                archiveArtifacts artifacts: 'bin/watchdog'
+                archiveArtifacts artifacts: 'bin/watchdog-server'
             }
         }
         
@@ -112,17 +115,17 @@ pipeline {
                     echo "🚀 Deploying Watchdog locally..."
                     
                     # Stop existing process if running
-                    pkill -f "watchdog" || true
+                    pkill -f "watchdog-server" || true
                     
                     # Create data directory
                     mkdir -p /var/lib/watchdog
                     
                     # Copy binary to deployment location
-                    sudo cp bin/watchdog /usr/local/bin/watchdog
-                    sudo chmod +x /usr/local/bin/watchdog
+                    sudo cp bin/watchdog-server /usr/local/bin/watchdog-server
+                    sudo chmod +x /usr/local/bin/watchdog-server
                     
                     # Start the service in background
-                    nohup /usr/local/bin/watchdog \\
+                    nohup /usr/local/bin/watchdog-server \\
                         --grpc-port=50051 \\
                         --http-port=8080 \\
                         --database-url="sqlite:///var/lib/watchdog/watchdog.db" \\
