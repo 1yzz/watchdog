@@ -153,9 +153,17 @@ pipeline {
                     
                     echo "🚀 Deploying Watchdog locally using systemd..."
                     
-                    # Stop existing service if running
+                    # Stop existing service and disable auto-restart
+                    echo "Stopping existing service and disabling auto-restart..."
                     sudo systemctl stop watchdog.service || true
                     sudo systemctl disable watchdog.service || true
+                    
+                    # Temporarily modify service file to disable auto-restart
+                    if [ -f /etc/systemd/system/watchdog.service ]; then
+                        echo "Temporarily disabling auto-restart in service file..."
+                        sudo sed -i 's/Restart=always/Restart=no/' /etc/systemd/system/watchdog.service
+                        sudo systemctl daemon-reload
+                    fi
                     
                     # Kill any process using port 50051
                     echo "Checking for processes using port 50051..."
@@ -205,8 +213,46 @@ pipeline {
                     # gRPC health check with retry
                     echo "Performing gRPC health check..."
                     for i in {1..12}; do
+                        echo "Health check attempt ${i}/12..."
+                        
+                        # First check if service is listening
+                        echo "Checking if service is listening on port 50051..."
+                        if sudo netstat -tlnp 2>/dev/null | grep :50051 || sudo ss -tlnp 2>/dev/null | grep :50051; then
+                            echo "✅ Port 50051 is listening"
+                        else
+                            echo "❌ Port 50051 is not listening"
+                            sudo journalctl -u watchdog.service --no-pager -n 10
+                            sleep 5
+                            continue
+                        fi
+                        
+                        # Try to list available services (IPv4)
+                        echo "Listing available gRPC services (IPv4)..."
+                        grpcurl -plaintext 127.0.0.1:50051 list 2>&1 || echo "Failed to list services via IPv4"
+                        
+                        # Try to list available services (IPv6)
+                        echo "Listing available gRPC services (IPv6)..."
+                        grpcurl -plaintext [::1]:50051 list 2>&1 || echo "Failed to list services via IPv6"
+                        
+                        # Try to list methods in WatchdogService (IPv4)
+                        echo "Listing methods in WatchdogService (IPv4)..."
+                        grpcurl -plaintext 127.0.0.1:50051 list watchdog.WatchdogService 2>&1 || echo "Failed to list methods via IPv4"
+                        
+                        # Try to list methods in WatchdogService (IPv6)
+                        echo "Listing methods in WatchdogService (IPv6)..."
+                        grpcurl -plaintext [::1]:50051 list watchdog.WatchdogService 2>&1 || echo "Failed to list methods via IPv6"
+                        
+                        # Now try the health check (try both IPv4 and IPv6)
+                        echo "Trying health check via IPv4..."
                         if grpcurl -plaintext 127.0.0.1:50051 watchdog.WatchdogService/GetHealth > /dev/null 2>&1; then
-                            echo "✅ Watchdog deployed successfully!"
+                            echo "✅ Watchdog deployed successfully via IPv4!"
+                            
+                            # Re-enable auto-restart for production
+                            echo "Re-enabling auto-restart for production..."
+                            sudo sed -i 's/Restart=no/Restart=always/' /etc/systemd/system/watchdog.service
+                            sudo systemctl daemon-reload
+                            sudo systemctl enable watchdog.service
+                            
                             echo "🔗 gRPC endpoint: localhost:50051"
                             echo "📝 Logs: journalctl -u watchdog.service"
                             echo "📊 Service: watchdog.service"
@@ -214,6 +260,26 @@ pipeline {
                             # Show health status
                             echo "🏥 Health status:"
                             grpcurl -plaintext 127.0.0.1:50051 watchdog.WatchdogService/GetHealth
+                            exit 0
+                        fi
+                        
+                        echo "IPv4 health check failed, trying IPv6..."
+                        if grpcurl -plaintext [::1]:50051 watchdog.WatchdogService/GetHealth > /dev/null 2>&1; then
+                            echo "✅ Watchdog deployed successfully via IPv6!"
+                            
+                            # Re-enable auto-restart for production
+                            echo "Re-enabling auto-restart for production..."
+                            sudo sed -i 's/Restart=no/Restart=always/' /etc/systemd/system/watchdog.service
+                            sudo systemctl daemon-reload
+                            sudo systemctl enable watchdog.service
+                            
+                            echo "🔗 gRPC endpoint: [::1]:50051"
+                            echo "📝 Logs: journalctl -u watchdog.service"
+                            echo "📊 Service: watchdog.service"
+                            
+                            # Show health status
+                            echo "🏥 Health status:"
+                            grpcurl -plaintext [::1]:50051 watchdog.WatchdogService/GetHealth
                             exit 0
                         fi
                         echo "gRPC health check attempt ${i}/12 failed, retrying in 5s..."
