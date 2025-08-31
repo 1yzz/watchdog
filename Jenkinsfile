@@ -39,7 +39,7 @@ pipeline {
                     go${GO_VERSION} version
                     
                     # Ensure we're using the exact version
-                    INSTALLED_VERSION=$(go${GO_VERSION} version | grep -o 'go[0-9.]*' | sed 's/go//')
+                    INSTALLED_VERSION=$(go${GO_VERSION} version | grep -o 'go[0-9.]*' | sed 's/go//' | tr -d '\n')
                     if [ "$INSTALLED_VERSION" != "${GO_VERSION}" ]; then
                         echo "❌ Expected Go ${GO_VERSION}, but got $INSTALLED_VERSION"
                         exit 1
