@@ -156,7 +156,7 @@ pipeline {
                     sudo chmod +x /usr/local/bin/watchdog-server
                     
                     # Start the service in background (gRPC only)
-                    nohup /usr/local/bin/watchdog-server > /var/log/watchdog.log 2>&1 &
+                    WATCHDOG_SERVICE_MODE=1 nohup /usr/local/bin/watchdog-server > /var/log/watchdog.log 2>&1 &
                     
                     echo $! > /tmp/watchdog.pid
                     
