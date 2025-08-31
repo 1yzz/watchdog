@@ -23,20 +23,20 @@ pipeline {
                     # Install exact Go version
                     echo "Installing Go ${GO_VERSION}..."
                     wget -q https://go.dev/dl/go${GO_VERSION}.linux-amd64.tar.gz
-                    sudo rm -rf /usr/local/go
+                    sudo rm -rf /usr/local/go${GO_VERSION}
                     sudo tar -C /usr/local -xzf go${GO_VERSION}.linux-amd64.tar.gz
                     rm go${GO_VERSION}.linux-amd64.tar.gz
                     
                     # Set Go environment
-                    export PATH=$PATH:/usr/local/go/bin
+                    export PATH=$PATH:/usr/local/go${GO_VERSION}/bin
                     export GOPATH=$HOME/go
                     export PATH=$PATH:$GOPATH/bin
                     
                     # Verify Go installation
-                    go version
+                    go${GO_VERSION} version
                     
                     # Ensure we're using the exact version
-                    INSTALLED_VERSION=$(go version | grep -o 'go[0-9.]*' | sed 's/go//')
+                    INSTALLED_VERSION=$(go${GO_VERSION} version | grep -o 'go[0-9.]*' | sed 's/go//')
                     if [ "$INSTALLED_VERSION" != "${GO_VERSION}" ]; then
                         echo "❌ Expected Go ${GO_VERSION}, but got $INSTALLED_VERSION"
                         exit 1
@@ -47,20 +47,20 @@ pipeline {
                     if ! command -v protoc &> /dev/null; then
                         echo "Installing protoc..."
                         wget -q https://github.com/protocolbuffers/protobuf/releases/download/v24.4/protoc-24.4-linux-x86_64.zip
-                        sudo unzip -q protoc-24.4-linux-x86_64.zip -d /usr/local
+                        sudo unzip -q protoc-24.4-linux-x86_64.zip -d /usr/local/go${GO_VERSION}
                         rm protoc-24.4-linux-x86_64.zip
                     fi
                     
                     # Download Go dependencies
-                    go mod download
+                    go${GO_VERSION} mod download
                     
                     # Install protoc-gen-go and protoc-gen-go-grpc
-                    go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
-                    go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
+                    go${GO_VERSION} install google.golang.org/protobuf/cmd/protoc-gen-go@latest
+                    go${GO_VERSION} install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
                     
                     # Verify tools
                     protoc --version
-                    go version
+                    go${GO_VERSION} version
                 '''
             }
         }
@@ -89,7 +89,7 @@ pipeline {
             steps {
                 sh '''
                     # Run Go tests
-                    go test -v ./...
+                    go${GO_VERSION} test -v ./...
                 '''
             }
         }
