@@ -1,13 +1,6 @@
 pipeline {
-    agent {
-        docker {
-            image 'golang:1.21-alpine'
-            args '-v /var/run/docker.sock:/var/run/docker.sock'
-        }
-    }
-    
     environment {
-        IMAGE_NAME = 'watchdog'
+        GO_VERSION = '1.21'
         CGO_ENABLED = '0'
         GOOS = 'linux'
     }
@@ -25,8 +18,41 @@ pipeline {
         stage('Setup Build Environment') {
             steps {
                 sh '''
-                    # Install required tools in Alpine
-                    apk add --no-cache git make curl docker-cli protoc protobuf-dev
+                    # Check if the correct Go version is installed
+                    CURRENT_GO_VERSION=$(go version 2>/dev/null | grep -o 'go[0-9.]*' | sed 's/go//' || echo "none")
+                    if [ "$CURRENT_GO_VERSION" != "${GO_VERSION}" ]; then
+                        echo "Installing Go ${GO_VERSION}... (current: $CURRENT_GO_VERSION)"
+                        wget -q https://go.dev/dl/go${GO_VERSION}.linux-amd64.tar.gz
+                        sudo rm -rf /usr/local/go
+                        sudo tar -C /usr/local -xzf go${GO_VERSION}.linux-amd64.tar.gz
+                        rm go${GO_VERSION}.linux-amd64.tar.gz
+                    else
+                        echo "Go ${GO_VERSION} already installed"
+                    fi
+                    
+                    # Set Go environment
+                    export PATH=$PATH:/usr/local/go/bin
+                    export GOPATH=$HOME/go
+                    export PATH=$PATH:$GOPATH/bin
+                    
+                    # Verify Go installation
+                    go version
+                    
+                    # Ensure we're using the exact version
+                    INSTALLED_VERSION=$(go version | grep -o 'go[0-9.]*' | sed 's/go//')
+                    if [ "$INSTALLED_VERSION" != "${GO_VERSION}" ]; then
+                        echo "❌ Expected Go ${GO_VERSION}, but got $INSTALLED_VERSION"
+                        exit 1
+                    fi
+                    echo "✅ Using Go ${GO_VERSION}"
+                    
+                    # Install protoc if not available
+                    if ! command -v protoc &> /dev/null; then
+                        echo "Installing protoc..."
+                        wget -q https://github.com/protocolbuffers/protobuf/releases/download/v24.4/protoc-24.4-linux-x86_64.zip
+                        sudo unzip -q protoc-24.4-linux-x86_64.zip -d /usr/local
+                        rm protoc-24.4-linux-x86_64.zip
+                    fi
                     
                     # Download Go dependencies
                     go mod download
@@ -34,6 +60,10 @@ pipeline {
                     # Install protoc-gen-go and protoc-gen-go-grpc
                     go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
                     go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
+                    
+                    # Verify tools
+                    protoc --version
+                    go version
                 '''
             }
         }
@@ -67,22 +97,7 @@ pipeline {
             }
         }
         
-        stage('Docker Build') {
-            steps {
-                sh '''
-                    # Build Docker image with current context
-                    docker build -t ${IMAGE_NAME}:${BUILD_TAG} -t ${IMAGE_NAME}:latest .
-                    
-                    # Verify image was built
-                    docker images | grep ${IMAGE_NAME}
-                    
-                    # Test image can start
-                    docker run --rm ${IMAGE_NAME}:${BUILD_TAG} --version || echo "Binary test completed"
-                '''
-            }
-        }
-        
-        stage('Deploy to Local Docker') {
+        stage('Deploy Local') {
             when {
                 anyOf {
                     branch 'main'
@@ -91,46 +106,30 @@ pipeline {
             }
             steps {
                 sh '''
-                    echo "🚀 Deploying Watchdog to local Docker container..."
+                    echo "🚀 Deploying Watchdog locally..."
                     
-                    # Stop and remove existing container
-                    echo "Stopping existing container..."
-                    docker stop watchdog-local 2>/dev/null || true
-                    docker rm watchdog-local 2>/dev/null || true
+                    # Stop existing process if running
+                    pkill -f "watchdog" || true
                     
-                    # Create data directory on host
-                    sudo mkdir -p /var/lib/watchdog
-                    sudo chown jenkins:jenkins /var/lib/watchdog || true
+                    # Create data directory
+                    mkdir -p /var/lib/watchdog
                     
-                    # Deploy new container
-                    echo "Starting new container with image: ${IMAGE_NAME}:${BUILD_TAG}"
-                    docker run -d \\
-                        --name watchdog-local \\
-                        --restart unless-stopped \\
-                        -p 50051:50051 \\
-                        -p 8080:8080 \\
-                        -v /var/lib/watchdog:/data \\
-                        -e DATABASE_URL=sqlite:///data/watchdog.db \\
-                        -e LOG_LEVEL=info \\
-                        -e GRPC_PORT=50051 \\
-                        -e HTTP_PORT=8080 \\
-                        --health-cmd="curl -f http://localhost:8080/health || exit 1" \\
-                        --health-interval=30s \\
-                        --health-timeout=10s \\
-                        --health-retries=3 \\
-                        ${IMAGE_NAME}:${BUILD_TAG}
+                    # Copy binary to deployment location
+                    sudo cp bin/watchdog /usr/local/bin/watchdog
+                    sudo chmod +x /usr/local/bin/watchdog
                     
-                    # Wait for container to start
-                    echo "Waiting for container to start..."
-                    sleep 15
+                    # Start the service in background
+                    nohup /usr/local/bin/watchdog \\
+                        --grpc-port=50051 \\
+                        --http-port=8080 \\
+                        --database-url="sqlite:///var/lib/watchdog/watchdog.db" \\
+                        --log-level=info > /var/log/watchdog.log 2>&1 &
                     
-                    # Check container status
-                    echo "Container status:"
-                    docker ps | grep watchdog-local
+                    echo $! > /var/run/watchdog.pid
                     
-                    # Check logs
-                    echo "Container logs:"
-                    docker logs watchdog-local --tail 20
+                    # Wait for service to start
+                    echo "Waiting for service to start..."
+                    sleep 10
                     
                     # Health check with retry
                     echo "Performing health check..."
@@ -139,9 +138,8 @@ pipeline {
                             echo "✅ Watchdog deployed successfully!"
                             echo "🔗 gRPC endpoint: localhost:50051"
                             echo "🔗 HTTP endpoint: http://localhost:8080"
-                            
-                            # Show final status
-                            docker ps | grep watchdog-local
+                            echo "📝 Logs: /var/log/watchdog.log"
+                            echo "📊 PID: $(cat /var/run/watchdog.pid)"
                             exit 0
                         fi
                         echo "Health check attempt ${i}/12 failed, retrying in 5s..."
@@ -149,8 +147,8 @@ pipeline {
                     done
                     
                     echo "❌ Deployment failed - service not responding after 60s"
-                    echo "Container logs:"
-                    docker logs watchdog-local
+                    echo "Service logs:"
+                    tail -20 /var/log/watchdog.log
                     exit 1
                 '''
             }
@@ -158,9 +156,8 @@ pipeline {
                 failure {
                     sh '''
                         echo "🔍 Deployment failed, collecting debug info..."
-                        docker ps -a | grep watchdog || true
-                        docker logs watchdog-local || true
-                        docker inspect watchdog-local || true
+                        ps aux | grep watchdog || true
+                        tail -50 /var/log/watchdog.log || true
                     '''
                 }
             }
