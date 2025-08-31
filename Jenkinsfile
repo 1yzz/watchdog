@@ -132,6 +132,11 @@ pipeline {
             }
             steps {
                 sh '''
+                    # Set Go environment for grpcurl
+                    export PATH=/usr/local/go${GO_VERSION}/bin:$PATH
+                    export GOPATH=$HOME/go
+                    export PATH=$PATH:$GOPATH/bin
+                    
                     echo "🚀 Deploying Watchdog locally..."
                     
                     # Stop existing process if running
@@ -150,12 +155,8 @@ pipeline {
                     sudo cp bin/watchdog-server /usr/local/bin/watchdog-server
                     sudo chmod +x /usr/local/bin/watchdog-server
                     
-                    # Start the service in background
-                    nohup /usr/local/bin/watchdog-server \\
-                        --grpc-port=50051 \\
-                        --http-port=8080 \\
-                        --database-url="sqlite:///var/lib/watchdog/watchdog.db" \\
-                        --log-level=info > /var/log/watchdog.log 2>&1 &
+                    # Start the service in background (gRPC only)
+                    nohup /usr/local/bin/watchdog-server > /var/log/watchdog.log 2>&1 &
                     
                     echo $! > /tmp/watchdog.pid
                     
@@ -163,22 +164,25 @@ pipeline {
                     echo "Waiting for service to start..."
                     sleep 10
                     
-                    # Health check with retry
-                    echo "Performing health check..."
+                    # gRPC health check with retry
+                    echo "Performing gRPC health check..."
                     for i in {1..12}; do
-                        if curl -f -s http://localhost:8080/health > /dev/null 2>&1; then
+                        if grpcurl -plaintext localhost:50051 watchdog.WatchdogService/GetHealth > /dev/null 2>&1; then
                             echo "✅ Watchdog deployed successfully!"
                             echo "🔗 gRPC endpoint: localhost:50051"
-                            echo "🔗 HTTP endpoint: http://localhost:8080"
                             echo "📝 Logs: /var/log/watchdog.log"
                             echo "📊 PID: $(cat /tmp/watchdog.pid)"
+                            
+                            # Show health status
+                            echo "🏥 Health status:"
+                            grpcurl -plaintext localhost:50051 watchdog.WatchdogService/GetHealth
                             exit 0
                         fi
-                        echo "Health check attempt ${i}/12 failed, retrying in 5s..."
+                        echo "gRPC health check attempt ${i}/12 failed, retrying in 5s..."
                         sleep 5
                     done
                     
-                    echo "❌ Deployment failed - service not responding after 60s"
+                    echo "❌ Deployment failed - gRPC service not responding after 60s"
                     echo "Service logs:"
                     tail -20 /var/log/watchdog.log
                     exit 1
