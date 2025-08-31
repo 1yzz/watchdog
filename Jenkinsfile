@@ -157,6 +157,20 @@ pipeline {
                     sudo systemctl stop watchdog.service || true
                     sudo systemctl disable watchdog.service || true
                     
+                    # Kill any process using port 50051
+                    echo "Checking for processes using port 50051..."
+                    PORT_PID=$(sudo lsof -ti:50051 2>/dev/null || sudo netstat -tlnp 2>/dev/null | grep :50051 | awk '{print $7}' | cut -d'/' -f1 || echo "")
+                    if [ ! -z "$PORT_PID" ]; then
+                        echo "Found process $PORT_PID using port 50051, killing it..."
+                        sudo kill -9 $PORT_PID || true
+                        sleep 2
+                    fi
+                    
+                    # Also try to kill any watchdog processes that might be running
+                    echo "Killing any existing watchdog processes..."
+                    sudo pkill -f "watchdog-server" || true
+                    sleep 1
+                    
                     # Create data directory with proper permissions
                     sudo mkdir -p /var/lib/watchdog
                     sudo chown jenkins:jenkins /var/lib/watchdog
