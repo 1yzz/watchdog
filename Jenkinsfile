@@ -1,4 +1,6 @@
 pipeline {
+    agent any
+    
     environment {
         GO_VERSION = '1.21'
         CGO_ENABLED = '0'
