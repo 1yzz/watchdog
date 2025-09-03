@@ -15,6 +15,14 @@ build:
 run: build
 	$(BINARY_PATH)
 
+# Run in development mode with auto-restart
+dev:
+	air
+
+# Run in development mode with auto-restart (alternative)
+dev-fresh:
+	air -c .air.toml
+
 # Clean build artifacts
 clean:
 	rm -rf bin/
