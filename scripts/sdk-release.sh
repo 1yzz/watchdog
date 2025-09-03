@@ -112,6 +112,12 @@ run_tests() {
 # Function to publish to npm
 publish_to_npm() {
     local sdk_dir="sdk/javascript"
+    local test_mode=${1:-false}
+    
+    if [[ "$test_mode" == true ]]; then
+        print_warning "TEST MODE: Skipping npm publish"
+        return 0
+    fi
     
     print_status "Publishing to npm..."
     
@@ -134,6 +140,12 @@ publish_to_npm() {
 create_git_tag() {
     local sdk_dir="sdk/javascript"
     local version=$(node -p "require('./$sdk_dir/package.json').version")
+    local test_mode=${1:-false}
+    
+    if [[ "$test_mode" == true ]]; then
+        print_warning "TEST MODE: Would create git tag sdk-v$version"
+        return 0
+    fi
     
     print_status "Creating git tag v$version..."
     
@@ -154,18 +166,46 @@ create_git_tag() {
 # Main execution
 main() {
     local version_type=${1:-patch}
+    local dry_run=false
+    local test_mode=false
+    
+    # Check for dry-run flag
+    if [[ "$1" == "--dry-run" ]]; then
+        dry_run=true
+        version_type=${2:-patch}
+    fi
+    
+    # Check for test mode flag
+    if [[ "$1" == "--test" ]]; then
+        test_mode=true
+        version_type=${2:-patch}
+    fi
     
     print_status "Starting SDK release process..."
     print_status "Version type: $version_type"
+    if [[ "$dry_run" == true ]]; then
+        print_warning "DRY RUN MODE - No actual changes will be made"
+    fi
+    if [[ "$test_mode" == true ]]; then
+        print_warning "TEST MODE - Will skip npm publish and git operations"
+    fi
     
     # Pre-flight checks
     check_git_repo
-    check_clean_working_dir
-    check_main_branch
+    if [[ "$dry_run" == false && "$test_mode" == false ]]; then
+        check_clean_working_dir
+        check_main_branch
+    fi
     
     # Build and test
     build_sdk
     run_tests
+    
+    if [[ "$dry_run" == true ]]; then
+        print_status "DRY RUN: Would bump version ($version_type)..."
+        print_success "DRY RUN completed successfully!"
+        return 0
+    fi
     
     # Bump version
     bump_version "$version_type"
@@ -177,10 +217,10 @@ main() {
     run_tests
     
     # Publish to npm
-    publish_to_npm
+    publish_to_npm "$test_mode"
     
     # Create git tag
-    create_git_tag
+    create_git_tag "$test_mode"
     
     print_success "SDK release completed successfully!"
 }
