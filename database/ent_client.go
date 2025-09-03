@@ -18,6 +18,18 @@ type EntClient struct {
 	client *ent.Client
 }
 
+// Helper function to convert ent.Service to ServiceRecord
+func entToServiceRecord(entService *ent.Service) *ServiceRecord {
+	serviceRecord := ServiceRecord(*entService)
+	return &serviceRecord
+}
+
+// Helper function to convert ServiceRecord to ent.Service
+func serviceRecordToEnt(serviceRecord ServiceRecord) *ent.Service {
+	entService := ent.Service(serviceRecord)
+	return &entService
+}
+
 // NewEntClient creates a new database connection using the generated Ent client
 func NewEntClient(config Config) (*EntClient, error) {
 	dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?parseTime=true&loc=UTC",
@@ -57,7 +69,7 @@ func (db *EntClient) Close() error {
 func (db *EntClient) HealthCheck() error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-	
+
 	// Try a simple query to test the connection
 	_, err := db.client.Service.Query().Count(ctx)
 	return err
@@ -67,22 +79,23 @@ func (db *EntClient) HealthCheck() error {
 func (db *EntClient) CreateService(serviceRecord ServiceRecord) (int64, error) {
 	ctx := context.Background()
 
-	entService, err := db.client.Service.Create().
-		SetName(serviceRecord.Name).
-		SetEndpoint(serviceRecord.Endpoint).
-		SetType(service.Type(serviceRecord.Type)). // Convert to Ent enum
-		SetStatus(serviceRecord.Status).
-		SetLastHeartbeat(serviceRecord.LastHeartbeat).
+	// Convert ServiceRecord to ent.Service for creation
+	entService := serviceRecordToEnt(serviceRecord)
+
+	created, err := db.client.Service.Create().
+		SetName(entService.Name).
+		SetEndpoint(entService.Endpoint).
+		SetType(entService.Type).
+		SetStatus(entService.Status).
+		SetLastHeartbeat(entService.LastHeartbeat).
 		Save(ctx)
 
 	if err != nil {
 		return 0, fmt.Errorf("failed to create service: %w", err)
 	}
 
-	// Log service creation (simplified)
-	log.Printf("Service %s created with ID %d", entService.Name, entService.ID)
-
-	return entService.ID, nil
+	log.Printf("Service %s created with ID %d", created.Name, created.ID)
+	return created.ID, nil
 }
 
 // GetService retrieves a service by ID using the generated Ent client
@@ -97,16 +110,7 @@ func (db *EntClient) GetService(serviceID int64) (*ServiceRecord, error) {
 		return nil, fmt.Errorf("failed to get service: %w", err)
 	}
 
-	return &ServiceRecord{
-		ID:            entService.ID,
-		Name:          entService.Name,
-		Endpoint:      entService.Endpoint,
-		Type:          string(entService.Type), // Convert from Ent enum
-		Status:        entService.Status,
-		LastHeartbeat: entService.LastHeartbeat,
-		CreatedAt:     entService.CreatedAt,
-		UpdatedAt:     entService.UpdatedAt,
-	}, nil
+	return entToServiceRecord(entService), nil
 }
 
 // ListServices lists all services using the generated Ent client
@@ -120,18 +124,10 @@ func (db *EntClient) ListServices() ([]ServiceRecord, error) {
 		return nil, fmt.Errorf("failed to list services: %w", err)
 	}
 
+	// Convert ent.Service to ServiceRecord (which is an alias)
 	services := make([]ServiceRecord, len(entServices))
 	for i, entService := range entServices {
-		services[i] = ServiceRecord{
-			ID:            entService.ID,
-			Name:          entService.Name,
-			Endpoint:      entService.Endpoint,
-			Type:          string(entService.Type), // Convert from Ent enum
-			Status:        entService.Status,
-			LastHeartbeat: entService.LastHeartbeat,
-			CreatedAt:     entService.CreatedAt,
-			UpdatedAt:     entService.UpdatedAt,
-		}
+		services[i] = *entToServiceRecord(entService)
 	}
 
 	return services, nil

@@ -1,6 +1,6 @@
 package database
 
-import "time"
+import "watchdog/ent"
 
 // Config holds database configuration
 type Config struct {
@@ -12,16 +12,7 @@ type Config struct {
 }
 
 // ServiceRecord represents a service record in the database
-type ServiceRecord struct {
-	ID            int64     `db:"id"`
-	Name          string    `db:"name"`
-	Endpoint      string    `db:"endpoint"`
-	Type          string    `db:"type"`
-	Status        string    `db:"status"`
-	LastHeartbeat time.Time `db:"last_heartbeat"`
-	CreatedAt     time.Time `db:"created_at"`
-	UpdatedAt     time.Time `db:"updated_at"`
-}
+type ServiceRecord = ent.Service
 
 // ServiceDB defines the interface for database operations on services
 // This interface is implemented by EntClient

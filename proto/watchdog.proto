@@ -15,6 +15,7 @@ enum ServiceType {
   SERVICE_TYPE_EXTERNAL_API = 7;
   SERVICE_TYPE_MICROSERVICE = 8;
   SERVICE_TYPE_OTHER = 9;
+  SERVICE_TYPE_SYSTEMD = 10;
 }
 
 service WatchdogService {
@@ -23,9 +24,16 @@ service WatchdogService {
   rpc UnregisterService(UnregisterServiceRequest) returns (UnregisterServiceResponse);
   rpc ListServices(ListServicesRequest) returns (ListServicesResponse);
   rpc UpdateServiceStatus(UpdateServiceStatusRequest) returns (UpdateServiceStatusResponse);
+  rpc CheckServiceHealth(CheckServiceHealthRequest) returns (HealthResponse);
 }
 
-message HealthRequest {}
+message CheckServiceHealthRequest {
+  string service_id = 1;
+}
+
+message HealthRequest {
+  
+}
 
 message HealthResponse {
   string status = 1;

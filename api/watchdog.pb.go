@@ -34,21 +34,23 @@ const (
 	ServiceType_SERVICE_TYPE_EXTERNAL_API ServiceType = 7
 	ServiceType_SERVICE_TYPE_MICROSERVICE ServiceType = 8
 	ServiceType_SERVICE_TYPE_OTHER        ServiceType = 9
+	ServiceType_SERVICE_TYPE_SYSTEMD      ServiceType = 10
 )
 
 // Enum value maps for ServiceType.
 var (
 	ServiceType_name = map[int32]string{
-		0: "SERVICE_TYPE_UNSPECIFIED",
-		1: "SERVICE_TYPE_HTTP",
-		2: "SERVICE_TYPE_GRPC",
-		3: "SERVICE_TYPE_DATABASE",
-		4: "SERVICE_TYPE_CACHE",
-		5: "SERVICE_TYPE_QUEUE",
-		6: "SERVICE_TYPE_STORAGE",
-		7: "SERVICE_TYPE_EXTERNAL_API",
-		8: "SERVICE_TYPE_MICROSERVICE",
-		9: "SERVICE_TYPE_OTHER",
+		0:  "SERVICE_TYPE_UNSPECIFIED",
+		1:  "SERVICE_TYPE_HTTP",
+		2:  "SERVICE_TYPE_GRPC",
+		3:  "SERVICE_TYPE_DATABASE",
+		4:  "SERVICE_TYPE_CACHE",
+		5:  "SERVICE_TYPE_QUEUE",
+		6:  "SERVICE_TYPE_STORAGE",
+		7:  "SERVICE_TYPE_EXTERNAL_API",
+		8:  "SERVICE_TYPE_MICROSERVICE",
+		9:  "SERVICE_TYPE_OTHER",
+		10: "SERVICE_TYPE_SYSTEMD",
 	}
 	ServiceType_value = map[string]int32{
 		"SERVICE_TYPE_UNSPECIFIED":  0,
@@ -61,6 +63,7 @@ var (
 		"SERVICE_TYPE_EXTERNAL_API": 7,
 		"SERVICE_TYPE_MICROSERVICE": 8,
 		"SERVICE_TYPE_OTHER":        9,
+		"SERVICE_TYPE_SYSTEMD":      10,
 	}
 )
 
@@ -91,6 +94,50 @@ func (ServiceType) EnumDescriptor() ([]byte, []int) {
 	return file_proto_watchdog_proto_rawDescGZIP(), []int{0}
 }
 
+type CheckServiceHealthRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	ServiceId     string                 `protobuf:"bytes,1,opt,name=service_id,json=serviceId,proto3" json:"service_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CheckServiceHealthRequest) Reset() {
+	*x = CheckServiceHealthRequest{}
+	mi := &file_proto_watchdog_proto_msgTypes[0]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CheckServiceHealthRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CheckServiceHealthRequest) ProtoMessage() {}
+
+func (x *CheckServiceHealthRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_watchdog_proto_msgTypes[0]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CheckServiceHealthRequest.ProtoReflect.Descriptor instead.
+func (*CheckServiceHealthRequest) Descriptor() ([]byte, []int) {
+	return file_proto_watchdog_proto_rawDescGZIP(), []int{0}
+}
+
+func (x *CheckServiceHealthRequest) GetServiceId() string {
+	if x != nil {
+		return x.ServiceId
+	}
+	return ""
+}
+
 type HealthRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	unknownFields protoimpl.UnknownFields
@@ -99,7 +146,7 @@ type HealthRequest struct {
 
 func (x *HealthRequest) Reset() {
 	*x = HealthRequest{}
-	mi := &file_proto_watchdog_proto_msgTypes[0]
+	mi := &file_proto_watchdog_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -111,7 +158,7 @@ func (x *HealthRequest) String() string {
 func (*HealthRequest) ProtoMessage() {}
 
 func (x *HealthRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_watchdog_proto_msgTypes[0]
+	mi := &file_proto_watchdog_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -124,7 +171,7 @@ func (x *HealthRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use HealthRequest.ProtoReflect.Descriptor instead.
 func (*HealthRequest) Descriptor() ([]byte, []int) {
-	return file_proto_watchdog_proto_rawDescGZIP(), []int{0}
+	return file_proto_watchdog_proto_rawDescGZIP(), []int{1}
 }
 
 type HealthResponse struct {
@@ -137,7 +184,7 @@ type HealthResponse struct {
 
 func (x *HealthResponse) Reset() {
 	*x = HealthResponse{}
-	mi := &file_proto_watchdog_proto_msgTypes[1]
+	mi := &file_proto_watchdog_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -149,7 +196,7 @@ func (x *HealthResponse) String() string {
 func (*HealthResponse) ProtoMessage() {}
 
 func (x *HealthResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_watchdog_proto_msgTypes[1]
+	mi := &file_proto_watchdog_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -162,7 +209,7 @@ func (x *HealthResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use HealthResponse.ProtoReflect.Descriptor instead.
 func (*HealthResponse) Descriptor() ([]byte, []int) {
-	return file_proto_watchdog_proto_rawDescGZIP(), []int{1}
+	return file_proto_watchdog_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *HealthResponse) GetStatus() string {
@@ -193,7 +240,7 @@ type ServiceInfo struct {
 
 func (x *ServiceInfo) Reset() {
 	*x = ServiceInfo{}
-	mi := &file_proto_watchdog_proto_msgTypes[2]
+	mi := &file_proto_watchdog_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -205,7 +252,7 @@ func (x *ServiceInfo) String() string {
 func (*ServiceInfo) ProtoMessage() {}
 
 func (x *ServiceInfo) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_watchdog_proto_msgTypes[2]
+	mi := &file_proto_watchdog_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -218,7 +265,7 @@ func (x *ServiceInfo) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ServiceInfo.ProtoReflect.Descriptor instead.
 func (*ServiceInfo) Descriptor() ([]byte, []int) {
-	return file_proto_watchdog_proto_rawDescGZIP(), []int{2}
+	return file_proto_watchdog_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *ServiceInfo) GetId() string {
@@ -274,7 +321,7 @@ type RegisterServiceRequest struct {
 
 func (x *RegisterServiceRequest) Reset() {
 	*x = RegisterServiceRequest{}
-	mi := &file_proto_watchdog_proto_msgTypes[3]
+	mi := &file_proto_watchdog_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -286,7 +333,7 @@ func (x *RegisterServiceRequest) String() string {
 func (*RegisterServiceRequest) ProtoMessage() {}
 
 func (x *RegisterServiceRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_watchdog_proto_msgTypes[3]
+	mi := &file_proto_watchdog_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -299,7 +346,7 @@ func (x *RegisterServiceRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RegisterServiceRequest.ProtoReflect.Descriptor instead.
 func (*RegisterServiceRequest) Descriptor() ([]byte, []int) {
-	return file_proto_watchdog_proto_rawDescGZIP(), []int{3}
+	return file_proto_watchdog_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *RegisterServiceRequest) GetName() string {
@@ -333,7 +380,7 @@ type RegisterServiceResponse struct {
 
 func (x *RegisterServiceResponse) Reset() {
 	*x = RegisterServiceResponse{}
-	mi := &file_proto_watchdog_proto_msgTypes[4]
+	mi := &file_proto_watchdog_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -345,7 +392,7 @@ func (x *RegisterServiceResponse) String() string {
 func (*RegisterServiceResponse) ProtoMessage() {}
 
 func (x *RegisterServiceResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_watchdog_proto_msgTypes[4]
+	mi := &file_proto_watchdog_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -358,7 +405,7 @@ func (x *RegisterServiceResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RegisterServiceResponse.ProtoReflect.Descriptor instead.
 func (*RegisterServiceResponse) Descriptor() ([]byte, []int) {
-	return file_proto_watchdog_proto_rawDescGZIP(), []int{4}
+	return file_proto_watchdog_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *RegisterServiceResponse) GetServiceId() string {
@@ -384,7 +431,7 @@ type UnregisterServiceRequest struct {
 
 func (x *UnregisterServiceRequest) Reset() {
 	*x = UnregisterServiceRequest{}
-	mi := &file_proto_watchdog_proto_msgTypes[5]
+	mi := &file_proto_watchdog_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -396,7 +443,7 @@ func (x *UnregisterServiceRequest) String() string {
 func (*UnregisterServiceRequest) ProtoMessage() {}
 
 func (x *UnregisterServiceRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_watchdog_proto_msgTypes[5]
+	mi := &file_proto_watchdog_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -409,7 +456,7 @@ func (x *UnregisterServiceRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UnregisterServiceRequest.ProtoReflect.Descriptor instead.
 func (*UnregisterServiceRequest) Descriptor() ([]byte, []int) {
-	return file_proto_watchdog_proto_rawDescGZIP(), []int{5}
+	return file_proto_watchdog_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *UnregisterServiceRequest) GetServiceId() string {
@@ -428,7 +475,7 @@ type UnregisterServiceResponse struct {
 
 func (x *UnregisterServiceResponse) Reset() {
 	*x = UnregisterServiceResponse{}
-	mi := &file_proto_watchdog_proto_msgTypes[6]
+	mi := &file_proto_watchdog_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -440,7 +487,7 @@ func (x *UnregisterServiceResponse) String() string {
 func (*UnregisterServiceResponse) ProtoMessage() {}
 
 func (x *UnregisterServiceResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_watchdog_proto_msgTypes[6]
+	mi := &file_proto_watchdog_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -453,7 +500,7 @@ func (x *UnregisterServiceResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UnregisterServiceResponse.ProtoReflect.Descriptor instead.
 func (*UnregisterServiceResponse) Descriptor() ([]byte, []int) {
-	return file_proto_watchdog_proto_rawDescGZIP(), []int{6}
+	return file_proto_watchdog_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *UnregisterServiceResponse) GetMessage() string {
@@ -471,7 +518,7 @@ type ListServicesRequest struct {
 
 func (x *ListServicesRequest) Reset() {
 	*x = ListServicesRequest{}
-	mi := &file_proto_watchdog_proto_msgTypes[7]
+	mi := &file_proto_watchdog_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -483,7 +530,7 @@ func (x *ListServicesRequest) String() string {
 func (*ListServicesRequest) ProtoMessage() {}
 
 func (x *ListServicesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_watchdog_proto_msgTypes[7]
+	mi := &file_proto_watchdog_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -496,7 +543,7 @@ func (x *ListServicesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListServicesRequest.ProtoReflect.Descriptor instead.
 func (*ListServicesRequest) Descriptor() ([]byte, []int) {
-	return file_proto_watchdog_proto_rawDescGZIP(), []int{7}
+	return file_proto_watchdog_proto_rawDescGZIP(), []int{8}
 }
 
 type ListServicesResponse struct {
@@ -508,7 +555,7 @@ type ListServicesResponse struct {
 
 func (x *ListServicesResponse) Reset() {
 	*x = ListServicesResponse{}
-	mi := &file_proto_watchdog_proto_msgTypes[8]
+	mi := &file_proto_watchdog_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -520,7 +567,7 @@ func (x *ListServicesResponse) String() string {
 func (*ListServicesResponse) ProtoMessage() {}
 
 func (x *ListServicesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_watchdog_proto_msgTypes[8]
+	mi := &file_proto_watchdog_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -533,7 +580,7 @@ func (x *ListServicesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListServicesResponse.ProtoReflect.Descriptor instead.
 func (*ListServicesResponse) Descriptor() ([]byte, []int) {
-	return file_proto_watchdog_proto_rawDescGZIP(), []int{8}
+	return file_proto_watchdog_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *ListServicesResponse) GetServices() []*ServiceInfo {
@@ -553,7 +600,7 @@ type UpdateServiceStatusRequest struct {
 
 func (x *UpdateServiceStatusRequest) Reset() {
 	*x = UpdateServiceStatusRequest{}
-	mi := &file_proto_watchdog_proto_msgTypes[9]
+	mi := &file_proto_watchdog_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -565,7 +612,7 @@ func (x *UpdateServiceStatusRequest) String() string {
 func (*UpdateServiceStatusRequest) ProtoMessage() {}
 
 func (x *UpdateServiceStatusRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_watchdog_proto_msgTypes[9]
+	mi := &file_proto_watchdog_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -578,7 +625,7 @@ func (x *UpdateServiceStatusRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateServiceStatusRequest.ProtoReflect.Descriptor instead.
 func (*UpdateServiceStatusRequest) Descriptor() ([]byte, []int) {
-	return file_proto_watchdog_proto_rawDescGZIP(), []int{9}
+	return file_proto_watchdog_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *UpdateServiceStatusRequest) GetServiceId() string {
@@ -604,7 +651,7 @@ type UpdateServiceStatusResponse struct {
 
 func (x *UpdateServiceStatusResponse) Reset() {
 	*x = UpdateServiceStatusResponse{}
-	mi := &file_proto_watchdog_proto_msgTypes[10]
+	mi := &file_proto_watchdog_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -616,7 +663,7 @@ func (x *UpdateServiceStatusResponse) String() string {
 func (*UpdateServiceStatusResponse) ProtoMessage() {}
 
 func (x *UpdateServiceStatusResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_watchdog_proto_msgTypes[10]
+	mi := &file_proto_watchdog_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -629,7 +676,7 @@ func (x *UpdateServiceStatusResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateServiceStatusResponse.ProtoReflect.Descriptor instead.
 func (*UpdateServiceStatusResponse) Descriptor() ([]byte, []int) {
-	return file_proto_watchdog_proto_rawDescGZIP(), []int{10}
+	return file_proto_watchdog_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *UpdateServiceStatusResponse) GetMessage() string {
@@ -643,7 +690,10 @@ var File_proto_watchdog_proto protoreflect.FileDescriptor
 
 const file_proto_watchdog_proto_rawDesc = "" +
 	"\n" +
-	"\x14proto/watchdog.proto\x12\bwatchdog\"\x0f\n" +
+	"\x14proto/watchdog.proto\x12\bwatchdog\":\n" +
+	"\x19CheckServiceHealthRequest\x12\x1d\n" +
+	"\n" +
+	"service_id\x18\x01 \x01(\tR\tserviceId\"\x0f\n" +
 	"\rHealthRequest\"B\n" +
 	"\x0eHealthResponse\x12\x16\n" +
 	"\x06status\x18\x01 \x01(\tR\x06status\x12\x18\n" +
@@ -676,7 +726,7 @@ const file_proto_watchdog_proto_rawDesc = "" +
 	"service_id\x18\x01 \x01(\tR\tserviceId\x12\x16\n" +
 	"\x06status\x18\x02 \x01(\tR\x06status\"7\n" +
 	"\x1bUpdateServiceStatusResponse\x12\x18\n" +
-	"\amessage\x18\x01 \x01(\tR\amessage*\x94\x02\n" +
+	"\amessage\x18\x01 \x01(\tR\amessage*\xae\x02\n" +
 	"\vServiceType\x12\x1c\n" +
 	"\x18SERVICE_TYPE_UNSPECIFIED\x10\x00\x12\x15\n" +
 	"\x11SERVICE_TYPE_HTTP\x10\x01\x12\x15\n" +
@@ -687,13 +737,16 @@ const file_proto_watchdog_proto_rawDesc = "" +
 	"\x14SERVICE_TYPE_STORAGE\x10\x06\x12\x1d\n" +
 	"\x19SERVICE_TYPE_EXTERNAL_API\x10\a\x12\x1d\n" +
 	"\x19SERVICE_TYPE_MICROSERVICE\x10\b\x12\x16\n" +
-	"\x12SERVICE_TYPE_OTHER\x10\t2\xba\x03\n" +
+	"\x12SERVICE_TYPE_OTHER\x10\t\x12\x18\n" +
+	"\x14SERVICE_TYPE_SYSTEMD\x10\n" +
+	"2\x8f\x04\n" +
 	"\x0fWatchdogService\x12>\n" +
 	"\tGetHealth\x12\x17.watchdog.HealthRequest\x1a\x18.watchdog.HealthResponse\x12V\n" +
 	"\x0fRegisterService\x12 .watchdog.RegisterServiceRequest\x1a!.watchdog.RegisterServiceResponse\x12\\\n" +
 	"\x11UnregisterService\x12\".watchdog.UnregisterServiceRequest\x1a#.watchdog.UnregisterServiceResponse\x12M\n" +
 	"\fListServices\x12\x1d.watchdog.ListServicesRequest\x1a\x1e.watchdog.ListServicesResponse\x12b\n" +
-	"\x13UpdateServiceStatus\x12$.watchdog.UpdateServiceStatusRequest\x1a%.watchdog.UpdateServiceStatusResponseB\x0eZ\fwatchdog/apib\x06proto3"
+	"\x13UpdateServiceStatus\x12$.watchdog.UpdateServiceStatusRequest\x1a%.watchdog.UpdateServiceStatusResponse\x12S\n" +
+	"\x12CheckServiceHealth\x12#.watchdog.CheckServiceHealthRequest\x1a\x18.watchdog.HealthResponseB\x0eZ\fwatchdog/apib\x06proto3"
 
 var (
 	file_proto_watchdog_proto_rawDescOnce sync.Once
@@ -708,37 +761,40 @@ func file_proto_watchdog_proto_rawDescGZIP() []byte {
 }
 
 var file_proto_watchdog_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_proto_watchdog_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
+var file_proto_watchdog_proto_msgTypes = make([]protoimpl.MessageInfo, 12)
 var file_proto_watchdog_proto_goTypes = []any{
 	(ServiceType)(0),                    // 0: watchdog.ServiceType
-	(*HealthRequest)(nil),               // 1: watchdog.HealthRequest
-	(*HealthResponse)(nil),              // 2: watchdog.HealthResponse
-	(*ServiceInfo)(nil),                 // 3: watchdog.ServiceInfo
-	(*RegisterServiceRequest)(nil),      // 4: watchdog.RegisterServiceRequest
-	(*RegisterServiceResponse)(nil),     // 5: watchdog.RegisterServiceResponse
-	(*UnregisterServiceRequest)(nil),    // 6: watchdog.UnregisterServiceRequest
-	(*UnregisterServiceResponse)(nil),   // 7: watchdog.UnregisterServiceResponse
-	(*ListServicesRequest)(nil),         // 8: watchdog.ListServicesRequest
-	(*ListServicesResponse)(nil),        // 9: watchdog.ListServicesResponse
-	(*UpdateServiceStatusRequest)(nil),  // 10: watchdog.UpdateServiceStatusRequest
-	(*UpdateServiceStatusResponse)(nil), // 11: watchdog.UpdateServiceStatusResponse
+	(*CheckServiceHealthRequest)(nil),   // 1: watchdog.CheckServiceHealthRequest
+	(*HealthRequest)(nil),               // 2: watchdog.HealthRequest
+	(*HealthResponse)(nil),              // 3: watchdog.HealthResponse
+	(*ServiceInfo)(nil),                 // 4: watchdog.ServiceInfo
+	(*RegisterServiceRequest)(nil),      // 5: watchdog.RegisterServiceRequest
+	(*RegisterServiceResponse)(nil),     // 6: watchdog.RegisterServiceResponse
+	(*UnregisterServiceRequest)(nil),    // 7: watchdog.UnregisterServiceRequest
+	(*UnregisterServiceResponse)(nil),   // 8: watchdog.UnregisterServiceResponse
+	(*ListServicesRequest)(nil),         // 9: watchdog.ListServicesRequest
+	(*ListServicesResponse)(nil),        // 10: watchdog.ListServicesResponse
+	(*UpdateServiceStatusRequest)(nil),  // 11: watchdog.UpdateServiceStatusRequest
+	(*UpdateServiceStatusResponse)(nil), // 12: watchdog.UpdateServiceStatusResponse
 }
 var file_proto_watchdog_proto_depIdxs = []int32{
 	0,  // 0: watchdog.ServiceInfo.type:type_name -> watchdog.ServiceType
 	0,  // 1: watchdog.RegisterServiceRequest.type:type_name -> watchdog.ServiceType
-	3,  // 2: watchdog.ListServicesResponse.services:type_name -> watchdog.ServiceInfo
-	1,  // 3: watchdog.WatchdogService.GetHealth:input_type -> watchdog.HealthRequest
-	4,  // 4: watchdog.WatchdogService.RegisterService:input_type -> watchdog.RegisterServiceRequest
-	6,  // 5: watchdog.WatchdogService.UnregisterService:input_type -> watchdog.UnregisterServiceRequest
-	8,  // 6: watchdog.WatchdogService.ListServices:input_type -> watchdog.ListServicesRequest
-	10, // 7: watchdog.WatchdogService.UpdateServiceStatus:input_type -> watchdog.UpdateServiceStatusRequest
-	2,  // 8: watchdog.WatchdogService.GetHealth:output_type -> watchdog.HealthResponse
-	5,  // 9: watchdog.WatchdogService.RegisterService:output_type -> watchdog.RegisterServiceResponse
-	7,  // 10: watchdog.WatchdogService.UnregisterService:output_type -> watchdog.UnregisterServiceResponse
-	9,  // 11: watchdog.WatchdogService.ListServices:output_type -> watchdog.ListServicesResponse
-	11, // 12: watchdog.WatchdogService.UpdateServiceStatus:output_type -> watchdog.UpdateServiceStatusResponse
-	8,  // [8:13] is the sub-list for method output_type
-	3,  // [3:8] is the sub-list for method input_type
+	4,  // 2: watchdog.ListServicesResponse.services:type_name -> watchdog.ServiceInfo
+	2,  // 3: watchdog.WatchdogService.GetHealth:input_type -> watchdog.HealthRequest
+	5,  // 4: watchdog.WatchdogService.RegisterService:input_type -> watchdog.RegisterServiceRequest
+	7,  // 5: watchdog.WatchdogService.UnregisterService:input_type -> watchdog.UnregisterServiceRequest
+	9,  // 6: watchdog.WatchdogService.ListServices:input_type -> watchdog.ListServicesRequest
+	11, // 7: watchdog.WatchdogService.UpdateServiceStatus:input_type -> watchdog.UpdateServiceStatusRequest
+	1,  // 8: watchdog.WatchdogService.CheckServiceHealth:input_type -> watchdog.CheckServiceHealthRequest
+	3,  // 9: watchdog.WatchdogService.GetHealth:output_type -> watchdog.HealthResponse
+	6,  // 10: watchdog.WatchdogService.RegisterService:output_type -> watchdog.RegisterServiceResponse
+	8,  // 11: watchdog.WatchdogService.UnregisterService:output_type -> watchdog.UnregisterServiceResponse
+	10, // 12: watchdog.WatchdogService.ListServices:output_type -> watchdog.ListServicesResponse
+	12, // 13: watchdog.WatchdogService.UpdateServiceStatus:output_type -> watchdog.UpdateServiceStatusResponse
+	3,  // 14: watchdog.WatchdogService.CheckServiceHealth:output_type -> watchdog.HealthResponse
+	9,  // [9:15] is the sub-list for method output_type
+	3,  // [3:9] is the sub-list for method input_type
 	3,  // [3:3] is the sub-list for extension type_name
 	3,  // [3:3] is the sub-list for extension extendee
 	0,  // [0:3] is the sub-list for field type_name
@@ -755,7 +811,7 @@ func file_proto_watchdog_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_watchdog_proto_rawDesc), len(file_proto_watchdog_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   11,
+			NumMessages:   12,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

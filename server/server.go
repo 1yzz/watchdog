@@ -4,7 +4,10 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net/http"
+	"os/exec"
 	"strconv"
+	"strings"
 	"time"
 
 	"google.golang.org/grpc/codes"
@@ -12,6 +15,7 @@ import (
 
 	"watchdog/api"
 	"watchdog/database"
+	"watchdog/ent/service"
 )
 
 type WatchdogServer struct {
@@ -62,7 +66,7 @@ func (s *WatchdogServer) RegisterService(ctx context.Context, req *api.RegisterS
 	service := database.ServiceRecord{
 		Name:          req.Name,
 		Endpoint:      req.Endpoint,
-		Type:          serviceTypeToString(req.Type),
+		Type:          service.Type(req.Type),
 		Status:        "active",
 		LastHeartbeat: time.Now(),
 	}
@@ -119,7 +123,7 @@ func (s *WatchdogServer) ListServices(ctx context.Context, req *api.ListServices
 			Endpoint:      service.Endpoint,
 			Status:        service.Status,
 			LastHeartbeat: service.LastHeartbeat.Unix(),
-			Type:          stringToServiceType(service.Type),
+			Type:          stringToServiceType(string(service.Type)),
 		}
 		apiServices = append(apiServices, apiService)
 	}
@@ -158,31 +162,6 @@ func (s *WatchdogServer) UpdateServiceStatus(ctx context.Context, req *api.Updat
 	}, nil
 }
 
-func serviceTypeToString(serviceType api.ServiceType) string {
-	switch serviceType {
-	case api.ServiceType_SERVICE_TYPE_HTTP:
-		return "SERVICE_TYPE_HTTP"
-	case api.ServiceType_SERVICE_TYPE_GRPC:
-		return "SERVICE_TYPE_GRPC"
-	case api.ServiceType_SERVICE_TYPE_DATABASE:
-		return "SERVICE_TYPE_DATABASE"
-	case api.ServiceType_SERVICE_TYPE_CACHE:
-		return "SERVICE_TYPE_CACHE"
-	case api.ServiceType_SERVICE_TYPE_QUEUE:
-		return "SERVICE_TYPE_QUEUE"
-	case api.ServiceType_SERVICE_TYPE_STORAGE:
-		return "SERVICE_TYPE_STORAGE"
-	case api.ServiceType_SERVICE_TYPE_EXTERNAL_API:
-		return "SERVICE_TYPE_EXTERNAL_API"
-	case api.ServiceType_SERVICE_TYPE_MICROSERVICE:
-		return "SERVICE_TYPE_MICROSERVICE"
-	case api.ServiceType_SERVICE_TYPE_OTHER:
-		return "SERVICE_TYPE_OTHER"
-	default:
-		return "SERVICE_TYPE_UNSPECIFIED"
-	}
-}
-
 func stringToServiceType(serviceType string) api.ServiceType {
 	switch serviceType {
 	case "SERVICE_TYPE_HTTP":
@@ -206,4 +185,107 @@ func stringToServiceType(serviceType string) api.ServiceType {
 	default:
 		return api.ServiceType_SERVICE_TYPE_UNSPECIFIED
 	}
+}
+
+func (s *WatchdogServer) checkHTTPHealth(endpoint string) (string, error) {
+	client := http.Client{
+		Timeout: 10 * time.Second,
+	}
+
+	resp, err := client.Get(endpoint)
+	if err != nil {
+		return "unhealthy", err
+	}
+
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return "unhealthy", fmt.Errorf("HTTP status code: %d", resp.StatusCode)
+	}
+
+	return "healthy", nil
+}
+
+func (s *WatchdogServer) checkSystemdHealth(endpoint string) (string, error) {
+	out, err := exec.CommandContext(context.Background(), "systemctl", "is-active", endpoint).Output()
+	if err != nil {
+		return "unhealthy", err
+	}
+	if strings.TrimSpace(string(out)) != "active" {
+		return "unhealthy", fmt.Errorf("systemd health check command returned: %s", string(out))
+	}
+
+	return "healthy", nil
+}
+
+func (s *WatchdogServer) checkGRPCHealth(endpoint string) (string, error) {
+	return "healthy", nil
+}
+
+func (s *WatchdogServer) checkDatabaseHealth(endpoint string) (string, error) {
+	return "healthy", nil
+}
+
+func (s *WatchdogServer) CheckServiceHealth(ctx context.Context, req *api.CheckServiceHealthRequest) (*api.HealthResponse, error) {
+	if req.ServiceId == "" {
+		return nil, status.Errorf(codes.InvalidArgument, "service ID cannot be empty")
+	}
+
+	serviceID, err := strconv.ParseInt(req.ServiceId, 10, 64)
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "invalid service ID format")
+	}
+
+	service, err := s.db.GetService(serviceID)
+	if err != nil {
+		return nil, status.Errorf(codes.NotFound, "service not found")
+	}
+
+	healthStatus := "unhealthy"
+
+	switch service.Type {
+	case "SERVICE_TYPE_HTTP":
+		healthStatus, err = s.checkHTTPHealth(service.Endpoint)
+		if err != nil {
+			log.Printf("HTTP health check failed for service %d (%s): %v", serviceID, service.Endpoint, err)
+			return &api.HealthResponse{
+				Status:  "unhealthy",
+				Message: fmt.Sprintf("Service is unreachable: %v", err),
+			}, nil
+		}
+	case "SERVICE_TYPE_GRPC":
+		healthStatus, err = s.checkGRPCHealth(service.Endpoint)
+		if err != nil {
+			log.Printf("gRPC health check failed for service %d (%s): %v", serviceID, service.Endpoint, err)
+			return &api.HealthResponse{
+				Status:  "unhealthy",
+				Message: fmt.Sprintf("Service is unreachable: %v", err),
+			}, nil
+		}
+	case "SERVICE_TYPE_SYSTEMD":
+		healthStatus, err = s.checkSystemdHealth(service.Endpoint)
+		if err != nil {
+			log.Printf("Systemd health check failed for service %d (%s): %v", serviceID, service.Endpoint, err)
+			return &api.HealthResponse{
+				Status:  "unhealthy",
+				Message: fmt.Sprintf("Service is unreachable: %v", err),
+			}, nil
+		}
+	case "SERVICE_TYPE_DATABASE", "SERVICE_TYPE_CACHE", "SERVICE_TYPE_QUEUE", "SERVICE_TYPE_STORAGE", "SERVICE_TYPE_EXTERNAL_API", "SERVICE_TYPE_MICROSERVICE", "SERVICE_TYPE_OTHER":
+		healthStatus, err = s.checkDatabaseHealth(service.Endpoint)
+		if err != nil {
+			log.Printf("Database health check failed for service %d (%s): %v", serviceID, service.Endpoint, err)
+			return &api.HealthResponse{
+				Status:  "unhealthy",
+				Message: fmt.Sprintf("Service is unreachable: %v", err),
+			}, nil
+		}
+	default:
+		return nil, status.Errorf(codes.InvalidArgument, "Unsupported service type")
+	}
+
+	return &api.HealthResponse{
+		Status:  healthStatus,
+		Message: "Service health checked successfully",
+	}, nil
 }

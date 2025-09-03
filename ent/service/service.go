@@ -93,6 +93,7 @@ const (
 	TypeSERVICE_TYPE_EXTERNAL_API Type = "SERVICE_TYPE_EXTERNAL_API"
 	TypeSERVICE_TYPE_MICROSERVICE Type = "SERVICE_TYPE_MICROSERVICE"
 	TypeSERVICE_TYPE_OTHER        Type = "SERVICE_TYPE_OTHER"
+	TypeSERVICE_TYPE_SYSTEMD      Type = "SERVICE_TYPE_SYSTEMD"
 )
 
 func (_type Type) String() string {
@@ -102,7 +103,7 @@ func (_type Type) String() string {
 // TypeValidator is a validator for the "type" field enum values. It is called by the builders before save.
 func TypeValidator(_type Type) error {
 	switch _type {
-	case TypeSERVICE_TYPE_UNSPECIFIED, TypeSERVICE_TYPE_HTTP, TypeSERVICE_TYPE_GRPC, TypeSERVICE_TYPE_DATABASE, TypeSERVICE_TYPE_CACHE, TypeSERVICE_TYPE_QUEUE, TypeSERVICE_TYPE_STORAGE, TypeSERVICE_TYPE_EXTERNAL_API, TypeSERVICE_TYPE_MICROSERVICE, TypeSERVICE_TYPE_OTHER:
+	case TypeSERVICE_TYPE_UNSPECIFIED, TypeSERVICE_TYPE_HTTP, TypeSERVICE_TYPE_GRPC, TypeSERVICE_TYPE_DATABASE, TypeSERVICE_TYPE_CACHE, TypeSERVICE_TYPE_QUEUE, TypeSERVICE_TYPE_STORAGE, TypeSERVICE_TYPE_EXTERNAL_API, TypeSERVICE_TYPE_MICROSERVICE, TypeSERVICE_TYPE_OTHER, TypeSERVICE_TYPE_SYSTEMD:
 		return nil
 	default:
 		return fmt.Errorf("service: invalid enum value for type field: %q", _type)

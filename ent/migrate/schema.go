@@ -14,7 +14,7 @@ var (
 		{Name: "id", Type: field.TypeInt64, Increment: true},
 		{Name: "name", Type: field.TypeString, Size: 255},
 		{Name: "endpoint", Type: field.TypeString, Size: 500},
-		{Name: "type", Type: field.TypeEnum, Enums: []string{"SERVICE_TYPE_UNSPECIFIED", "SERVICE_TYPE_HTTP", "SERVICE_TYPE_GRPC", "SERVICE_TYPE_DATABASE", "SERVICE_TYPE_CACHE", "SERVICE_TYPE_QUEUE", "SERVICE_TYPE_STORAGE", "SERVICE_TYPE_EXTERNAL_API", "SERVICE_TYPE_MICROSERVICE", "SERVICE_TYPE_OTHER"}, Default: "SERVICE_TYPE_UNSPECIFIED"},
+		{Name: "type", Type: field.TypeEnum, Enums: []string{"SERVICE_TYPE_UNSPECIFIED", "SERVICE_TYPE_HTTP", "SERVICE_TYPE_GRPC", "SERVICE_TYPE_DATABASE", "SERVICE_TYPE_CACHE", "SERVICE_TYPE_QUEUE", "SERVICE_TYPE_STORAGE", "SERVICE_TYPE_EXTERNAL_API", "SERVICE_TYPE_MICROSERVICE", "SERVICE_TYPE_OTHER", "SERVICE_TYPE_SYSTEMD"}, Default: "SERVICE_TYPE_UNSPECIFIED"},
 		{Name: "status", Type: field.TypeString, Size: 50, Default: "active"},
 		{Name: "last_heartbeat", Type: field.TypeTime, Default: "CURRENT_TIMESTAMP"},
 		{Name: "created_at", Type: field.TypeTime, Default: "CURRENT_TIMESTAMP"},

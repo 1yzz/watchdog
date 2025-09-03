@@ -39,15 +39,16 @@ func (Service) Fields() []ent.Field {
 		field.Enum("type").
 			Values(
 				"SERVICE_TYPE_UNSPECIFIED",
-				"SERVICE_TYPE_HTTP", 
+				"SERVICE_TYPE_HTTP",
 				"SERVICE_TYPE_GRPC",
 				"SERVICE_TYPE_DATABASE",
 				"SERVICE_TYPE_CACHE",
 				"SERVICE_TYPE_QUEUE",
 				"SERVICE_TYPE_STORAGE",
 				"SERVICE_TYPE_EXTERNAL_API",
-				"SERVICE_TYPE_MICROSERVICE", 
+				"SERVICE_TYPE_MICROSERVICE",
 				"SERVICE_TYPE_OTHER",
+				"SERVICE_TYPE_SYSTEMD",
 			).
 			Default("SERVICE_TYPE_UNSPECIFIED").
 			Comment("Type of service being monitored"),
@@ -99,7 +100,7 @@ func (Service) Indexes() []ent.Index {
 		// Index on type for filtering services by type
 		index.Fields("type"),
 
-		// Index on status for filtering by status 
+		// Index on status for filtering by status
 		index.Fields("status"),
 
 		// Index on last_heartbeat for time-based queries

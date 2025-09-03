@@ -25,6 +25,9 @@ proto:
 	protoc --go_out=. --go_opt=paths=source_relative \
 		--go-grpc_out=. --go-grpc_opt=paths=source_relative \
 		$(PROTO_DIR)/watchdog.proto
+	@echo "Moving generated files to api directory..."
+	@mv $(PROTO_DIR)/watchdog.pb.go $(API_DIR)/watchdog.pb.go
+	@mv $(PROTO_DIR)/watchdog_grpc.pb.go $(API_DIR)/watchdog_grpc.pb.go
 
 # Run tests
 test:

@@ -24,6 +24,7 @@ const (
 	WatchdogService_UnregisterService_FullMethodName   = "/watchdog.WatchdogService/UnregisterService"
 	WatchdogService_ListServices_FullMethodName        = "/watchdog.WatchdogService/ListServices"
 	WatchdogService_UpdateServiceStatus_FullMethodName = "/watchdog.WatchdogService/UpdateServiceStatus"
+	WatchdogService_CheckServiceHealth_FullMethodName  = "/watchdog.WatchdogService/CheckServiceHealth"
 )
 
 // WatchdogServiceClient is the client API for WatchdogService service.
@@ -35,6 +36,7 @@ type WatchdogServiceClient interface {
 	UnregisterService(ctx context.Context, in *UnregisterServiceRequest, opts ...grpc.CallOption) (*UnregisterServiceResponse, error)
 	ListServices(ctx context.Context, in *ListServicesRequest, opts ...grpc.CallOption) (*ListServicesResponse, error)
 	UpdateServiceStatus(ctx context.Context, in *UpdateServiceStatusRequest, opts ...grpc.CallOption) (*UpdateServiceStatusResponse, error)
+	CheckServiceHealth(ctx context.Context, in *CheckServiceHealthRequest, opts ...grpc.CallOption) (*HealthResponse, error)
 }
 
 type watchdogServiceClient struct {
@@ -95,6 +97,16 @@ func (c *watchdogServiceClient) UpdateServiceStatus(ctx context.Context, in *Upd
 	return out, nil
 }
 
+func (c *watchdogServiceClient) CheckServiceHealth(ctx context.Context, in *CheckServiceHealthRequest, opts ...grpc.CallOption) (*HealthResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(HealthResponse)
+	err := c.cc.Invoke(ctx, WatchdogService_CheckServiceHealth_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // WatchdogServiceServer is the server API for WatchdogService service.
 // All implementations must embed UnimplementedWatchdogServiceServer
 // for forward compatibility.
@@ -104,6 +116,7 @@ type WatchdogServiceServer interface {
 	UnregisterService(context.Context, *UnregisterServiceRequest) (*UnregisterServiceResponse, error)
 	ListServices(context.Context, *ListServicesRequest) (*ListServicesResponse, error)
 	UpdateServiceStatus(context.Context, *UpdateServiceStatusRequest) (*UpdateServiceStatusResponse, error)
+	CheckServiceHealth(context.Context, *CheckServiceHealthRequest) (*HealthResponse, error)
 	mustEmbedUnimplementedWatchdogServiceServer()
 }
 
@@ -128,6 +141,9 @@ func (UnimplementedWatchdogServiceServer) ListServices(context.Context, *ListSer
 }
 func (UnimplementedWatchdogServiceServer) UpdateServiceStatus(context.Context, *UpdateServiceStatusRequest) (*UpdateServiceStatusResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateServiceStatus not implemented")
+}
+func (UnimplementedWatchdogServiceServer) CheckServiceHealth(context.Context, *CheckServiceHealthRequest) (*HealthResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CheckServiceHealth not implemented")
 }
 func (UnimplementedWatchdogServiceServer) mustEmbedUnimplementedWatchdogServiceServer() {}
 func (UnimplementedWatchdogServiceServer) testEmbeddedByValue()                         {}
@@ -240,6 +256,24 @@ func _WatchdogService_UpdateServiceStatus_Handler(srv interface{}, ctx context.C
 	return interceptor(ctx, in, info, handler)
 }
 
+func _WatchdogService_CheckServiceHealth_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CheckServiceHealthRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(WatchdogServiceServer).CheckServiceHealth(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: WatchdogService_CheckServiceHealth_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(WatchdogServiceServer).CheckServiceHealth(ctx, req.(*CheckServiceHealthRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // WatchdogService_ServiceDesc is the grpc.ServiceDesc for WatchdogService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -266,6 +300,10 @@ var WatchdogService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UpdateServiceStatus",
 			Handler:    _WatchdogService_UpdateServiceStatus_Handler,
+		},
+		{
+			MethodName: "CheckServiceHealth",
+			Handler:    _WatchdogService_CheckServiceHealth_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
