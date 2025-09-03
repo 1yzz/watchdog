@@ -21,6 +21,7 @@ go.work
 bin/
 dist/
 sdk/javascript/dist/
+sdk/javascript/src/generated/
 
 # Environment files
 .env
