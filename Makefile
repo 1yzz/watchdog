@@ -1,4 +1,4 @@
-.PHONY: build run clean proto test sdk-build sdk-publish sdk-dev
+.PHONY: build run clean proto test sdk-build sdk-dev
 
 # Variables
 BINARY_NAME=watchdog-server
@@ -108,41 +108,7 @@ sdk-lint: sdk-install
 	@echo "Linting JavaScript SDK..."
 	cd $(SDK_JS_DIR) && npm run lint
 
-sdk-publish: sdk-build sdk-test
-	@echo "Publishing JavaScript SDK to npm registry..."
-	cd $(SDK_JS_DIR) && npm publish
 
-sdk-publish-beta: sdk-build sdk-test
-	@echo "Publishing JavaScript SDK as beta version..."
-	cd $(SDK_JS_DIR) && npm publish --tag beta
-
-sdk-version-patch: sdk-install
-	@echo "Bumping patch version..."
-	cd $(SDK_JS_DIR) && npm version patch
-
-sdk-version-minor: sdk-install
-	@echo "Bumping minor version..."
-	cd $(SDK_JS_DIR) && npm version minor
-
-sdk-version-major: sdk-install
-	@echo "Bumping major version..."
-	cd $(SDK_JS_DIR) && npm version major
-
-sdk-release: sdk-build sdk-test
-	@echo "Running automated SDK release..."
-	./scripts/sdk-release.sh
-
-sdk-release-patch: sdk-build sdk-test
-	@echo "Releasing patch version..."
-	./scripts/sdk-release.sh patch
-
-sdk-release-minor: sdk-build sdk-test
-	@echo "Releasing minor version..."
-	./scripts/sdk-release.sh minor
-
-sdk-release-major: sdk-build sdk-test
-	@echo "Releasing major version..."
-	./scripts/sdk-release.sh major
 
 sdk-clean:
 	@echo "Cleaning JavaScript SDK build artifacts..."
@@ -180,13 +146,7 @@ help:
 	@echo "  sdk-lint           - Lint SDK code"
 	@echo "  sdk-clean          - Clean SDK build artifacts"
 	@echo ""
-	@echo "SDK Publishing Commands:"
-	@echo "  sdk-publish        - Publish SDK to npm registry"
-	@echo "  sdk-publish-beta   - Publish SDK as beta version"
-	@echo "  sdk-release        - Automated release (patch)"
-	@echo "  sdk-release-patch  - Release patch version (1.0.x)"
-	@echo "  sdk-release-minor  - Release minor version (1.x.0)"
-	@echo "  sdk-release-major  - Release major version (x.0.0)"
+
 	@echo ""
 	@echo "CI/CD Commands:"
 	@echo "  server-start-bg    - Start server in background"
