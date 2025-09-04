@@ -66,7 +66,7 @@ func (s *WatchdogServer) RegisterService(ctx context.Context, req *api.RegisterS
 	service := database.ServiceRecord{
 		Name:          req.Name,
 		Endpoint:      req.Endpoint,
-		Type:          service.Type(req.Type),
+		Type:          apiToEntServiceType(req.Type),
 		Status:        "active",
 		LastHeartbeat: time.Now(),
 	}
