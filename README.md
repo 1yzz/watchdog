@@ -15,6 +15,8 @@ A gRPC-based service monitoring and management system built with Go. The Watchdo
 - **Reflection Support**: Built-in gRPC reflection for easy testing
 - **Native Deployment**: Simple binary deployment with .env configuration
 - **Ent Framework**: Schema-as-code with automatic migrations using Facebook's Ent
+- **JavaScript/TypeScript SDK**: Full-featured SDK with dynamic protobuf support
+- **Automated SDK Publishing**: Streamlined release process with version management
 
 ## Project Structure
 
@@ -39,6 +41,9 @@ watchdog/
 │   └── interface.go       # Database interface and types
 ├── config/                 # Configuration management
 │   └── config.go          # Configuration loading
+├── sdk/                    # Official SDKs
+│   ├── javascript/        # JavaScript/TypeScript SDK
+│   └── proto/             # SDK proto files
 ├── examples/               # Client examples
 │   └── nodejs/            # Node.js client implementation
 ├── cmd/                    # Application entry point
@@ -125,6 +130,7 @@ Updates the status of a registered service.
 - `SERVICE_TYPE_EXTERNAL_API` - External API integrations
 - `SERVICE_TYPE_MICROSERVICE` - Internal microservices
 - `SERVICE_TYPE_OTHER` - Other service types
+- `SERVICE_TYPE_SYSTEMD` - SystemD managed services
 
 ## Prerequisites
 
@@ -244,6 +250,16 @@ The server will start on port `50051` by default (configurable via `PORT` enviro
 - `make db-migrate-ent-dry` - Show what migration would do without executing
 - `make ent-generate` - Generate Ent code from schema definitions
 
+**JavaScript SDK:**
+- `make sdk-install` - Install SDK dependencies
+- `make sdk-build` - Build the JavaScript SDK
+- `make sdk-test` - Run SDK tests
+- `make sdk-lint` - Lint SDK code
+- `make sdk-release-patch` - Release patch version (1.0.x)
+- `make sdk-release-minor` - Release minor version (1.x.0)
+- `make sdk-release-major` - Release major version (x.0.0)
+- `make sdk-clean` - Clean SDK build artifacts
+
 **Other:**
 - `make help` - Show available commands
 
@@ -271,9 +287,117 @@ grpcurl -plaintext -d '{"service_id": "my-service-123456"}' \
   localhost:50051 watchdog.WatchdogService/UnregisterService
 ```
 
-### Node.js Client
+### JavaScript/TypeScript SDK
 
-A complete Node.js client implementation is available in the `examples/nodejs/` directory:
+The official JavaScript SDK provides a modern, type-safe interface with dynamic protobuf support:
+
+#### Installation
+
+```bash
+npm install watchdog-grpc-sdk
+```
+
+#### Basic Usage
+
+```javascript
+const { WatchdogClient, ServiceType } = require('watchdog-grpc-sdk');
+
+async function main() {
+  const client = new WatchdogClient({
+    host: 'localhost',
+    port: 50051,
+    timeout: 5000,
+  });
+
+  try {
+    // Check health
+    const health = await client.getHealth();
+    console.log('Health:', health);
+
+    // Register a service
+    const registration = await client.registerService({
+      name: 'my-web-service',
+      endpoint: 'http://localhost:8080',
+      type: ServiceType.SERVICE_TYPE_HTTP,
+    });
+    console.log('Registered:', registration);
+
+    // List all services
+    const services = await client.listServices();
+    services.forEach(service => {
+      console.log(`${service.getName()}: ${service.getStatus()}`);
+    });
+
+    // Update service status
+    await client.updateServiceStatus({
+      serviceId: registration.serviceId,
+      status: 'healthy',
+    });
+
+    // Unregister service
+    await client.unregisterService(registration.serviceId);
+  } catch (error) {
+    console.error('Error:', error.message);
+  } finally {
+    client.close();
+  }
+}
+
+main();
+```
+
+#### TypeScript Usage
+
+```typescript
+import { WatchdogClient, ServiceType, WatchdogClientOptions } from 'watchdog-grpc-sdk';
+
+const options: WatchdogClientOptions = {
+  host: 'localhost',
+  port: 50051,
+  timeout: 5000,
+};
+
+const client = new WatchdogClient(options);
+
+// Full type safety for all operations
+const registration = await client.registerService({
+  name: 'user-service',
+  endpoint: 'grpc://user-service:9090',
+  type: ServiceType.SERVICE_TYPE_GRPC,
+});
+```
+
+#### SDK Features
+
+- **Dynamic Protobuf Support**: No hardcoded imports - automatically adapts to proto changes
+- **Full TypeScript Support**: Complete type definitions and IntelliSense support
+- **Promise-based API**: Modern async/await patterns
+- **Automatic Type Generation**: Generated from the same proto files as the server
+- **Error Handling**: Descriptive error messages with troubleshooting hints
+- **Connection Management**: Automatic connection lifecycle management
+
+#### SDK Development
+
+Build the SDK from source:
+
+```bash
+# Build the SDK
+make sdk-build
+
+# Run tests
+make sdk-test
+
+# Lint code
+make sdk-lint
+
+# Run examples
+cd sdk/javascript
+node examples/basic-usage.js
+```
+
+### Node.js Client Examples
+
+Legacy Node.js client examples are available in the `examples/nodejs/` directory:
 
 ```bash
 # Install dependencies
@@ -287,25 +411,35 @@ node client.js
 node async-client.js
 ```
 
-The Node.js client provides:
-- Promise-based API
-- Error handling and retry logic
-- Service monitoring patterns
-- Clean resource management
-
 See [examples/nodejs/README.md](examples/nodejs/README.md) for detailed usage instructions.
 
 ## Development
 
 ### Regenerating Protocol Buffers
 
-If you modify the proto files, regenerate the Go code:
+If you modify the proto files, regenerate the Go code and SDK:
 
 ```bash
+# Regenerate Go protobuf code
 make proto
+
+# Rebuild JavaScript SDK with new proto definitions
+make sdk-build
 ```
 
 Note: This requires the Protocol Buffers compiler (`protoc`) and the Go plugins to be installed.
+
+### SDK Development Workflow
+
+The JavaScript SDK uses dynamic protobuf imports to eliminate hardcoded dependencies:
+
+1. **Modify proto files**: Update `proto/watchdog.proto`
+2. **Regenerate code**: Run `make proto` to update Go code
+3. **Rebuild SDK**: Run `make sdk-build` to regenerate JavaScript types
+4. **Test changes**: Run `make sdk-test` to verify functionality
+5. **Version and publish**: Use `make sdk-release-patch/minor/major` for releases
+
+The SDK automatically adapts to proto changes without manual code updates.
 
 ### Code Formatting
 

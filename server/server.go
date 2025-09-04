@@ -133,13 +133,9 @@ func (s *WatchdogServer) ListServices(ctx context.Context, req *api.ListServices
 	}, nil
 }
 
-func (s *WatchdogServer) UpdateServiceStatus(ctx context.Context, req *api.UpdateServiceStatusRequest) (*api.UpdateServiceStatusResponse, error) {
+func (s *WatchdogServer) UpdateService(ctx context.Context, req *api.UpdateServiceRequest) (*api.UpdateServiceResponse, error) {
 	if req.ServiceId == "" {
 		return nil, status.Errorf(codes.InvalidArgument, "service ID cannot be empty")
-	}
-
-	if req.Status == "" {
-		return nil, status.Errorf(codes.InvalidArgument, "status cannot be empty")
 	}
 
 	// Convert string ID to int64
@@ -148,17 +144,17 @@ func (s *WatchdogServer) UpdateServiceStatus(ctx context.Context, req *api.Updat
 		return nil, status.Errorf(codes.InvalidArgument, "invalid service ID format")
 	}
 
-	err = s.db.UpdateServiceStatus(serviceID, req.Status)
+	err = s.db.UpdateService(serviceID, req.Status, req.Name, apiToEntServiceType(req.Type), req.Endpoint)
 	if err != nil {
 		if err.Error() == "service not found" {
 			return nil, status.Errorf(codes.NotFound, "service not found")
 		}
-		log.Printf("Failed to update service status: %v", err)
-		return nil, status.Errorf(codes.Internal, "failed to update service status")
+		log.Printf("Failed to update service: %v", err)
+		return nil, status.Errorf(codes.Internal, "failed to update service")
 	}
 
-	return &api.UpdateServiceStatusResponse{
-		Message: "Service status updated successfully",
+	return &api.UpdateServiceResponse{
+		Message: "Service updated successfully",
 	}, nil
 }
 
@@ -182,8 +178,64 @@ func stringToServiceType(serviceType string) api.ServiceType {
 		return api.ServiceType_SERVICE_TYPE_MICROSERVICE
 	case "SERVICE_TYPE_OTHER":
 		return api.ServiceType_SERVICE_TYPE_OTHER
+	case "SERVICE_TYPE_SYSTEMD":
+		return api.ServiceType_SERVICE_TYPE_SYSTEMD
 	default:
 		return api.ServiceType_SERVICE_TYPE_UNSPECIFIED
+	}
+}
+
+func serviceTypeToString(serviceType api.ServiceType) string {
+	switch serviceType {
+	case api.ServiceType_SERVICE_TYPE_HTTP:
+		return "SERVICE_TYPE_HTTP"
+	case api.ServiceType_SERVICE_TYPE_GRPC:
+		return "SERVICE_TYPE_GRPC"
+	case api.ServiceType_SERVICE_TYPE_DATABASE:
+		return "SERVICE_TYPE_DATABASE"
+	case api.ServiceType_SERVICE_TYPE_CACHE:
+		return "SERVICE_TYPE_CACHE"
+	case api.ServiceType_SERVICE_TYPE_QUEUE:
+		return "SERVICE_TYPE_QUEUE"
+	case api.ServiceType_SERVICE_TYPE_STORAGE:
+		return "SERVICE_TYPE_STORAGE"
+	case api.ServiceType_SERVICE_TYPE_EXTERNAL_API:
+		return "SERVICE_TYPE_EXTERNAL_API"
+	case api.ServiceType_SERVICE_TYPE_MICROSERVICE:
+		return "SERVICE_TYPE_MICROSERVICE"
+	case api.ServiceType_SERVICE_TYPE_OTHER:
+		return "SERVICE_TYPE_OTHER"
+	case api.ServiceType_SERVICE_TYPE_SYSTEMD:
+		return "SERVICE_TYPE_SYSTEMD"
+	default:
+		return "SERVICE_TYPE_UNSPECIFIED"
+	}
+}
+
+func apiToEntServiceType(apiType api.ServiceType) service.Type {
+	switch apiType {
+	case api.ServiceType_SERVICE_TYPE_HTTP:
+		return service.TypeSERVICE_TYPE_HTTP
+	case api.ServiceType_SERVICE_TYPE_GRPC:
+		return service.TypeSERVICE_TYPE_GRPC
+	case api.ServiceType_SERVICE_TYPE_DATABASE:
+		return service.TypeSERVICE_TYPE_DATABASE
+	case api.ServiceType_SERVICE_TYPE_CACHE:
+		return service.TypeSERVICE_TYPE_CACHE
+	case api.ServiceType_SERVICE_TYPE_QUEUE:
+		return service.TypeSERVICE_TYPE_QUEUE
+	case api.ServiceType_SERVICE_TYPE_STORAGE:
+		return service.TypeSERVICE_TYPE_STORAGE
+	case api.ServiceType_SERVICE_TYPE_EXTERNAL_API:
+		return service.TypeSERVICE_TYPE_EXTERNAL_API
+	case api.ServiceType_SERVICE_TYPE_MICROSERVICE:
+		return service.TypeSERVICE_TYPE_MICROSERVICE
+	case api.ServiceType_SERVICE_TYPE_OTHER:
+		return service.TypeSERVICE_TYPE_OTHER
+	case api.ServiceType_SERVICE_TYPE_SYSTEMD:
+		return service.TypeSERVICE_TYPE_SYSTEMD
+	default:
+		return service.TypeSERVICE_TYPE_UNSPECIFIED
 	}
 }
 

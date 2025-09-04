@@ -1,6 +1,6 @@
 {
   "name": "watchdog-grpc-sdk",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "JavaScript/Node.js SDK for Watchdog gRPC Service",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

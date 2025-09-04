@@ -19,12 +19,12 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	WatchdogService_GetHealth_FullMethodName           = "/watchdog.WatchdogService/GetHealth"
-	WatchdogService_RegisterService_FullMethodName     = "/watchdog.WatchdogService/RegisterService"
-	WatchdogService_UnregisterService_FullMethodName   = "/watchdog.WatchdogService/UnregisterService"
-	WatchdogService_ListServices_FullMethodName        = "/watchdog.WatchdogService/ListServices"
-	WatchdogService_UpdateServiceStatus_FullMethodName = "/watchdog.WatchdogService/UpdateServiceStatus"
-	WatchdogService_CheckServiceHealth_FullMethodName  = "/watchdog.WatchdogService/CheckServiceHealth"
+	WatchdogService_GetHealth_FullMethodName          = "/watchdog.WatchdogService/GetHealth"
+	WatchdogService_RegisterService_FullMethodName    = "/watchdog.WatchdogService/RegisterService"
+	WatchdogService_UnregisterService_FullMethodName  = "/watchdog.WatchdogService/UnregisterService"
+	WatchdogService_ListServices_FullMethodName       = "/watchdog.WatchdogService/ListServices"
+	WatchdogService_UpdateService_FullMethodName      = "/watchdog.WatchdogService/UpdateService"
+	WatchdogService_CheckServiceHealth_FullMethodName = "/watchdog.WatchdogService/CheckServiceHealth"
 )
 
 // WatchdogServiceClient is the client API for WatchdogService service.
@@ -35,7 +35,7 @@ type WatchdogServiceClient interface {
 	RegisterService(ctx context.Context, in *RegisterServiceRequest, opts ...grpc.CallOption) (*RegisterServiceResponse, error)
 	UnregisterService(ctx context.Context, in *UnregisterServiceRequest, opts ...grpc.CallOption) (*UnregisterServiceResponse, error)
 	ListServices(ctx context.Context, in *ListServicesRequest, opts ...grpc.CallOption) (*ListServicesResponse, error)
-	UpdateServiceStatus(ctx context.Context, in *UpdateServiceStatusRequest, opts ...grpc.CallOption) (*UpdateServiceStatusResponse, error)
+	UpdateService(ctx context.Context, in *UpdateServiceRequest, opts ...grpc.CallOption) (*UpdateServiceResponse, error)
 	CheckServiceHealth(ctx context.Context, in *CheckServiceHealthRequest, opts ...grpc.CallOption) (*HealthResponse, error)
 }
 
@@ -87,10 +87,10 @@ func (c *watchdogServiceClient) ListServices(ctx context.Context, in *ListServic
 	return out, nil
 }
 
-func (c *watchdogServiceClient) UpdateServiceStatus(ctx context.Context, in *UpdateServiceStatusRequest, opts ...grpc.CallOption) (*UpdateServiceStatusResponse, error) {
+func (c *watchdogServiceClient) UpdateService(ctx context.Context, in *UpdateServiceRequest, opts ...grpc.CallOption) (*UpdateServiceResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(UpdateServiceStatusResponse)
-	err := c.cc.Invoke(ctx, WatchdogService_UpdateServiceStatus_FullMethodName, in, out, cOpts...)
+	out := new(UpdateServiceResponse)
+	err := c.cc.Invoke(ctx, WatchdogService_UpdateService_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -115,7 +115,7 @@ type WatchdogServiceServer interface {
 	RegisterService(context.Context, *RegisterServiceRequest) (*RegisterServiceResponse, error)
 	UnregisterService(context.Context, *UnregisterServiceRequest) (*UnregisterServiceResponse, error)
 	ListServices(context.Context, *ListServicesRequest) (*ListServicesResponse, error)
-	UpdateServiceStatus(context.Context, *UpdateServiceStatusRequest) (*UpdateServiceStatusResponse, error)
+	UpdateService(context.Context, *UpdateServiceRequest) (*UpdateServiceResponse, error)
 	CheckServiceHealth(context.Context, *CheckServiceHealthRequest) (*HealthResponse, error)
 	mustEmbedUnimplementedWatchdogServiceServer()
 }
@@ -139,8 +139,8 @@ func (UnimplementedWatchdogServiceServer) UnregisterService(context.Context, *Un
 func (UnimplementedWatchdogServiceServer) ListServices(context.Context, *ListServicesRequest) (*ListServicesResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListServices not implemented")
 }
-func (UnimplementedWatchdogServiceServer) UpdateServiceStatus(context.Context, *UpdateServiceStatusRequest) (*UpdateServiceStatusResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method UpdateServiceStatus not implemented")
+func (UnimplementedWatchdogServiceServer) UpdateService(context.Context, *UpdateServiceRequest) (*UpdateServiceResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateService not implemented")
 }
 func (UnimplementedWatchdogServiceServer) CheckServiceHealth(context.Context, *CheckServiceHealthRequest) (*HealthResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CheckServiceHealth not implemented")
@@ -238,20 +238,20 @@ func _WatchdogService_ListServices_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
-func _WatchdogService_UpdateServiceStatus_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(UpdateServiceStatusRequest)
+func _WatchdogService_UpdateService_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateServiceRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(WatchdogServiceServer).UpdateServiceStatus(ctx, in)
+		return srv.(WatchdogServiceServer).UpdateService(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: WatchdogService_UpdateServiceStatus_FullMethodName,
+		FullMethod: WatchdogService_UpdateService_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(WatchdogServiceServer).UpdateServiceStatus(ctx, req.(*UpdateServiceStatusRequest))
+		return srv.(WatchdogServiceServer).UpdateService(ctx, req.(*UpdateServiceRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -298,8 +298,8 @@ var WatchdogService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _WatchdogService_ListServices_Handler,
 		},
 		{
-			MethodName: "UpdateServiceStatus",
-			Handler:    _WatchdogService_UpdateServiceStatus_Handler,
+			MethodName: "UpdateService",
+			Handler:    _WatchdogService_UpdateService_Handler,
 		},
 		{
 			MethodName: "CheckServiceHealth",

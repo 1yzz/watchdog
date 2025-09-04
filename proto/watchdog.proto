@@ -23,7 +23,7 @@ service WatchdogService {
   rpc RegisterService(RegisterServiceRequest) returns (RegisterServiceResponse);
   rpc UnregisterService(UnregisterServiceRequest) returns (UnregisterServiceResponse);
   rpc ListServices(ListServicesRequest) returns (ListServicesResponse);
-  rpc UpdateServiceStatus(UpdateServiceStatusRequest) returns (UpdateServiceStatusResponse);
+  rpc UpdateService(UpdateServiceRequest) returns (UpdateServiceResponse);
   rpc CheckServiceHealth(CheckServiceHealthRequest) returns (HealthResponse);
 }
 
@@ -74,11 +74,14 @@ message ListServicesResponse {
   repeated ServiceInfo services = 1;
 }
 
-message UpdateServiceStatusRequest {
+message UpdateServiceRequest {
   string service_id = 1;
   string status = 2;
+  string name = 3;
+  ServiceType type = 4;
+  string endpoint = 5;
 }
 
-message UpdateServiceStatusResponse {
+message UpdateServiceResponse {
   string message = 1;
 }

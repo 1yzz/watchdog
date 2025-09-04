@@ -590,28 +590,31 @@ func (x *ListServicesResponse) GetServices() []*ServiceInfo {
 	return nil
 }
 
-type UpdateServiceStatusRequest struct {
+type UpdateServiceRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	ServiceId     string                 `protobuf:"bytes,1,opt,name=service_id,json=serviceId,proto3" json:"service_id,omitempty"`
 	Status        string                 `protobuf:"bytes,2,opt,name=status,proto3" json:"status,omitempty"`
+	Name          string                 `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
+	Type          ServiceType            `protobuf:"varint,4,opt,name=type,proto3,enum=watchdog.ServiceType" json:"type,omitempty"`
+	Endpoint      string                 `protobuf:"bytes,5,opt,name=endpoint,proto3" json:"endpoint,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *UpdateServiceStatusRequest) Reset() {
-	*x = UpdateServiceStatusRequest{}
+func (x *UpdateServiceRequest) Reset() {
+	*x = UpdateServiceRequest{}
 	mi := &file_proto_watchdog_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *UpdateServiceStatusRequest) String() string {
+func (x *UpdateServiceRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*UpdateServiceStatusRequest) ProtoMessage() {}
+func (*UpdateServiceRequest) ProtoMessage() {}
 
-func (x *UpdateServiceStatusRequest) ProtoReflect() protoreflect.Message {
+func (x *UpdateServiceRequest) ProtoReflect() protoreflect.Message {
 	mi := &file_proto_watchdog_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -623,46 +626,67 @@ func (x *UpdateServiceStatusRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use UpdateServiceStatusRequest.ProtoReflect.Descriptor instead.
-func (*UpdateServiceStatusRequest) Descriptor() ([]byte, []int) {
+// Deprecated: Use UpdateServiceRequest.ProtoReflect.Descriptor instead.
+func (*UpdateServiceRequest) Descriptor() ([]byte, []int) {
 	return file_proto_watchdog_proto_rawDescGZIP(), []int{10}
 }
 
-func (x *UpdateServiceStatusRequest) GetServiceId() string {
+func (x *UpdateServiceRequest) GetServiceId() string {
 	if x != nil {
 		return x.ServiceId
 	}
 	return ""
 }
 
-func (x *UpdateServiceStatusRequest) GetStatus() string {
+func (x *UpdateServiceRequest) GetStatus() string {
 	if x != nil {
 		return x.Status
 	}
 	return ""
 }
 
-type UpdateServiceStatusResponse struct {
+func (x *UpdateServiceRequest) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *UpdateServiceRequest) GetType() ServiceType {
+	if x != nil {
+		return x.Type
+	}
+	return ServiceType_SERVICE_TYPE_UNSPECIFIED
+}
+
+func (x *UpdateServiceRequest) GetEndpoint() string {
+	if x != nil {
+		return x.Endpoint
+	}
+	return ""
+}
+
+type UpdateServiceResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Message       string                 `protobuf:"bytes,1,opt,name=message,proto3" json:"message,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *UpdateServiceStatusResponse) Reset() {
-	*x = UpdateServiceStatusResponse{}
+func (x *UpdateServiceResponse) Reset() {
+	*x = UpdateServiceResponse{}
 	mi := &file_proto_watchdog_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *UpdateServiceStatusResponse) String() string {
+func (x *UpdateServiceResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*UpdateServiceStatusResponse) ProtoMessage() {}
+func (*UpdateServiceResponse) ProtoMessage() {}
 
-func (x *UpdateServiceStatusResponse) ProtoReflect() protoreflect.Message {
+func (x *UpdateServiceResponse) ProtoReflect() protoreflect.Message {
 	mi := &file_proto_watchdog_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -674,12 +698,12 @@ func (x *UpdateServiceStatusResponse) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use UpdateServiceStatusResponse.ProtoReflect.Descriptor instead.
-func (*UpdateServiceStatusResponse) Descriptor() ([]byte, []int) {
+// Deprecated: Use UpdateServiceResponse.ProtoReflect.Descriptor instead.
+func (*UpdateServiceResponse) Descriptor() ([]byte, []int) {
 	return file_proto_watchdog_proto_rawDescGZIP(), []int{11}
 }
 
-func (x *UpdateServiceStatusResponse) GetMessage() string {
+func (x *UpdateServiceResponse) GetMessage() string {
 	if x != nil {
 		return x.Message
 	}
@@ -720,12 +744,15 @@ const file_proto_watchdog_proto_rawDesc = "" +
 	"\amessage\x18\x01 \x01(\tR\amessage\"\x15\n" +
 	"\x13ListServicesRequest\"I\n" +
 	"\x14ListServicesResponse\x121\n" +
-	"\bservices\x18\x01 \x03(\v2\x15.watchdog.ServiceInfoR\bservices\"S\n" +
-	"\x1aUpdateServiceStatusRequest\x12\x1d\n" +
+	"\bservices\x18\x01 \x03(\v2\x15.watchdog.ServiceInfoR\bservices\"\xa8\x01\n" +
+	"\x14UpdateServiceRequest\x12\x1d\n" +
 	"\n" +
 	"service_id\x18\x01 \x01(\tR\tserviceId\x12\x16\n" +
-	"\x06status\x18\x02 \x01(\tR\x06status\"7\n" +
-	"\x1bUpdateServiceStatusResponse\x12\x18\n" +
+	"\x06status\x18\x02 \x01(\tR\x06status\x12\x12\n" +
+	"\x04name\x18\x03 \x01(\tR\x04name\x12)\n" +
+	"\x04type\x18\x04 \x01(\x0e2\x15.watchdog.ServiceTypeR\x04type\x12\x1a\n" +
+	"\bendpoint\x18\x05 \x01(\tR\bendpoint\"1\n" +
+	"\x15UpdateServiceResponse\x12\x18\n" +
 	"\amessage\x18\x01 \x01(\tR\amessage*\xae\x02\n" +
 	"\vServiceType\x12\x1c\n" +
 	"\x18SERVICE_TYPE_UNSPECIFIED\x10\x00\x12\x15\n" +
@@ -739,13 +766,13 @@ const file_proto_watchdog_proto_rawDesc = "" +
 	"\x19SERVICE_TYPE_MICROSERVICE\x10\b\x12\x16\n" +
 	"\x12SERVICE_TYPE_OTHER\x10\t\x12\x18\n" +
 	"\x14SERVICE_TYPE_SYSTEMD\x10\n" +
-	"2\x8f\x04\n" +
+	"2\xfd\x03\n" +
 	"\x0fWatchdogService\x12>\n" +
 	"\tGetHealth\x12\x17.watchdog.HealthRequest\x1a\x18.watchdog.HealthResponse\x12V\n" +
 	"\x0fRegisterService\x12 .watchdog.RegisterServiceRequest\x1a!.watchdog.RegisterServiceResponse\x12\\\n" +
 	"\x11UnregisterService\x12\".watchdog.UnregisterServiceRequest\x1a#.watchdog.UnregisterServiceResponse\x12M\n" +
-	"\fListServices\x12\x1d.watchdog.ListServicesRequest\x1a\x1e.watchdog.ListServicesResponse\x12b\n" +
-	"\x13UpdateServiceStatus\x12$.watchdog.UpdateServiceStatusRequest\x1a%.watchdog.UpdateServiceStatusResponse\x12S\n" +
+	"\fListServices\x12\x1d.watchdog.ListServicesRequest\x1a\x1e.watchdog.ListServicesResponse\x12P\n" +
+	"\rUpdateService\x12\x1e.watchdog.UpdateServiceRequest\x1a\x1f.watchdog.UpdateServiceResponse\x12S\n" +
 	"\x12CheckServiceHealth\x12#.watchdog.CheckServiceHealthRequest\x1a\x18.watchdog.HealthResponseB\x0eZ\fwatchdog/apib\x06proto3"
 
 var (
@@ -763,41 +790,42 @@ func file_proto_watchdog_proto_rawDescGZIP() []byte {
 var file_proto_watchdog_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
 var file_proto_watchdog_proto_msgTypes = make([]protoimpl.MessageInfo, 12)
 var file_proto_watchdog_proto_goTypes = []any{
-	(ServiceType)(0),                    // 0: watchdog.ServiceType
-	(*CheckServiceHealthRequest)(nil),   // 1: watchdog.CheckServiceHealthRequest
-	(*HealthRequest)(nil),               // 2: watchdog.HealthRequest
-	(*HealthResponse)(nil),              // 3: watchdog.HealthResponse
-	(*ServiceInfo)(nil),                 // 4: watchdog.ServiceInfo
-	(*RegisterServiceRequest)(nil),      // 5: watchdog.RegisterServiceRequest
-	(*RegisterServiceResponse)(nil),     // 6: watchdog.RegisterServiceResponse
-	(*UnregisterServiceRequest)(nil),    // 7: watchdog.UnregisterServiceRequest
-	(*UnregisterServiceResponse)(nil),   // 8: watchdog.UnregisterServiceResponse
-	(*ListServicesRequest)(nil),         // 9: watchdog.ListServicesRequest
-	(*ListServicesResponse)(nil),        // 10: watchdog.ListServicesResponse
-	(*UpdateServiceStatusRequest)(nil),  // 11: watchdog.UpdateServiceStatusRequest
-	(*UpdateServiceStatusResponse)(nil), // 12: watchdog.UpdateServiceStatusResponse
+	(ServiceType)(0),                  // 0: watchdog.ServiceType
+	(*CheckServiceHealthRequest)(nil), // 1: watchdog.CheckServiceHealthRequest
+	(*HealthRequest)(nil),             // 2: watchdog.HealthRequest
+	(*HealthResponse)(nil),            // 3: watchdog.HealthResponse
+	(*ServiceInfo)(nil),               // 4: watchdog.ServiceInfo
+	(*RegisterServiceRequest)(nil),    // 5: watchdog.RegisterServiceRequest
+	(*RegisterServiceResponse)(nil),   // 6: watchdog.RegisterServiceResponse
+	(*UnregisterServiceRequest)(nil),  // 7: watchdog.UnregisterServiceRequest
+	(*UnregisterServiceResponse)(nil), // 8: watchdog.UnregisterServiceResponse
+	(*ListServicesRequest)(nil),       // 9: watchdog.ListServicesRequest
+	(*ListServicesResponse)(nil),      // 10: watchdog.ListServicesResponse
+	(*UpdateServiceRequest)(nil),      // 11: watchdog.UpdateServiceRequest
+	(*UpdateServiceResponse)(nil),     // 12: watchdog.UpdateServiceResponse
 }
 var file_proto_watchdog_proto_depIdxs = []int32{
 	0,  // 0: watchdog.ServiceInfo.type:type_name -> watchdog.ServiceType
 	0,  // 1: watchdog.RegisterServiceRequest.type:type_name -> watchdog.ServiceType
 	4,  // 2: watchdog.ListServicesResponse.services:type_name -> watchdog.ServiceInfo
-	2,  // 3: watchdog.WatchdogService.GetHealth:input_type -> watchdog.HealthRequest
-	5,  // 4: watchdog.WatchdogService.RegisterService:input_type -> watchdog.RegisterServiceRequest
-	7,  // 5: watchdog.WatchdogService.UnregisterService:input_type -> watchdog.UnregisterServiceRequest
-	9,  // 6: watchdog.WatchdogService.ListServices:input_type -> watchdog.ListServicesRequest
-	11, // 7: watchdog.WatchdogService.UpdateServiceStatus:input_type -> watchdog.UpdateServiceStatusRequest
-	1,  // 8: watchdog.WatchdogService.CheckServiceHealth:input_type -> watchdog.CheckServiceHealthRequest
-	3,  // 9: watchdog.WatchdogService.GetHealth:output_type -> watchdog.HealthResponse
-	6,  // 10: watchdog.WatchdogService.RegisterService:output_type -> watchdog.RegisterServiceResponse
-	8,  // 11: watchdog.WatchdogService.UnregisterService:output_type -> watchdog.UnregisterServiceResponse
-	10, // 12: watchdog.WatchdogService.ListServices:output_type -> watchdog.ListServicesResponse
-	12, // 13: watchdog.WatchdogService.UpdateServiceStatus:output_type -> watchdog.UpdateServiceStatusResponse
-	3,  // 14: watchdog.WatchdogService.CheckServiceHealth:output_type -> watchdog.HealthResponse
-	9,  // [9:15] is the sub-list for method output_type
-	3,  // [3:9] is the sub-list for method input_type
-	3,  // [3:3] is the sub-list for extension type_name
-	3,  // [3:3] is the sub-list for extension extendee
-	0,  // [0:3] is the sub-list for field type_name
+	0,  // 3: watchdog.UpdateServiceRequest.type:type_name -> watchdog.ServiceType
+	2,  // 4: watchdog.WatchdogService.GetHealth:input_type -> watchdog.HealthRequest
+	5,  // 5: watchdog.WatchdogService.RegisterService:input_type -> watchdog.RegisterServiceRequest
+	7,  // 6: watchdog.WatchdogService.UnregisterService:input_type -> watchdog.UnregisterServiceRequest
+	9,  // 7: watchdog.WatchdogService.ListServices:input_type -> watchdog.ListServicesRequest
+	11, // 8: watchdog.WatchdogService.UpdateService:input_type -> watchdog.UpdateServiceRequest
+	1,  // 9: watchdog.WatchdogService.CheckServiceHealth:input_type -> watchdog.CheckServiceHealthRequest
+	3,  // 10: watchdog.WatchdogService.GetHealth:output_type -> watchdog.HealthResponse
+	6,  // 11: watchdog.WatchdogService.RegisterService:output_type -> watchdog.RegisterServiceResponse
+	8,  // 12: watchdog.WatchdogService.UnregisterService:output_type -> watchdog.UnregisterServiceResponse
+	10, // 13: watchdog.WatchdogService.ListServices:output_type -> watchdog.ListServicesResponse
+	12, // 14: watchdog.WatchdogService.UpdateService:output_type -> watchdog.UpdateServiceResponse
+	3,  // 15: watchdog.WatchdogService.CheckServiceHealth:output_type -> watchdog.HealthResponse
+	10, // [10:16] is the sub-list for method output_type
+	4,  // [4:10] is the sub-list for method input_type
+	4,  // [4:4] is the sub-list for extension type_name
+	4,  // [4:4] is the sub-list for extension extendee
+	0,  // [0:4] is the sub-list for field type_name
 }
 
 func init() { file_proto_watchdog_proto_init() }

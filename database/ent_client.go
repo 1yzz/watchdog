@@ -133,8 +133,8 @@ func (db *EntClient) ListServices() ([]ServiceRecord, error) {
 	return services, nil
 }
 
-// UpdateServiceStatus updates a service status using the generated Ent client
-func (db *EntClient) UpdateServiceStatus(serviceID int64, newStatus string) error {
+// UpdateService updates a service using the generated Ent client
+func (db *EntClient) UpdateService(serviceID int64, newStatus string, name string, serviceType service.Type, endpoint string) error {
 	ctx := context.Background()
 
 	// Get current service first
@@ -143,18 +143,38 @@ func (db *EntClient) UpdateServiceStatus(serviceID int64, newStatus string) erro
 		return fmt.Errorf("service not found: %w", err)
 	}
 
-	// Update the service
+	// Use current values for empty parameters to avoid validation errors
+	updateName := name
+	updateEndpoint := endpoint
+	updateServiceType := serviceType
+
+	if updateName == "" {
+		updateName = currentService.Name
+	}
+	if updateEndpoint == "" {
+		updateEndpoint = currentService.Endpoint
+	}
+	// Use zero value check for enum type
+	if updateServiceType == "" {
+		updateServiceType = currentService.Type
+	}
+
+	// Direct type usage - no string conversion needed
 	_, err = db.client.Service.UpdateOneID(serviceID).
 		SetStatus(newStatus).
+		SetName(updateName).
+		SetEndpoint(updateEndpoint).
+		SetType(updateServiceType).
 		SetLastHeartbeat(time.Now()).
 		Save(ctx)
 
 	if err != nil {
-		return fmt.Errorf("failed to update service status: %w", err)
+		return fmt.Errorf("failed to update service: %w", err)
 	}
 
 	// Log the status change
-	log.Printf("Service %d status changed from %s to %s", serviceID, currentService.Status, newStatus)
+	log.Printf("Service %d updated: status=%s, name=%s, type=%s, endpoint=%s",
+		serviceID, newStatus, updateName, string(updateServiceType), updateEndpoint)
 
 	return nil
 }

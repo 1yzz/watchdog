@@ -1,6 +1,9 @@
 package database
 
-import "watchdog/ent"
+import (
+	"watchdog/ent"
+	"watchdog/ent/service"
+)
 
 // Config holds database configuration
 type Config struct {
@@ -25,12 +28,12 @@ type ServiceDB interface {
 	CreateService(service ServiceRecord) (int64, error)
 	GetService(serviceID int64) (*ServiceRecord, error)
 	ListServices() ([]ServiceRecord, error)
-	UpdateServiceStatus(serviceID int64, newStatus string) error
+	UpdateService(serviceID int64, newStatus string, name string, serviceType service.Type, endpoint string) error
 	DeleteService(serviceID int64) error
 
 	// Health logging
 	LogHealthCheck(status string, serviceCount int) error
 }
 
-// Ensure EntClient implementation satisfies the interface
+// Ensure EntClient implementation satisfies the ServiceDB interface
 var _ ServiceDB = (*EntClient)(nil)
