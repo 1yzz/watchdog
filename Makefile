@@ -1,4 +1,4 @@
-.PHONY: build run clean proto test sdk-build sdk-dev
+.PHONY: build run clean proto test sdk-build sdk-release-patch sdk-release-minor sdk-release-major sdk-dev
 
 # Variables
 BINARY_NAME=watchdog-server
@@ -108,7 +108,17 @@ sdk-lint: sdk-install
 	@echo "Linting JavaScript SDK..."
 	cd $(SDK_JS_DIR) && npm run lint
 
+sdk-release-patch: sdk-build sdk-test
+	@echo "Releasing patch version..."
+	cd $(SDK_JS_DIR) && npm version patch && npm publish
 
+sdk-release-minor: sdk-build sdk-test
+	@echo "Releasing minor version..."
+	cd $(SDK_JS_DIR) && npm version minor && npm publish
+
+sdk-release-major: sdk-build sdk-test
+	@echo "Releasing major version..."
+	cd $(SDK_JS_DIR) && npm version major && npm publish
 
 sdk-clean:
 	@echo "Cleaning JavaScript SDK build artifacts..."
@@ -144,6 +154,9 @@ help:
 	@echo "  sdk-build          - Build the JavaScript SDK"
 	@echo "  sdk-test           - Run SDK tests"
 	@echo "  sdk-lint           - Lint SDK code"
+	@echo "  sdk-release-patch  - Release patch version (1.0.x)"
+	@echo "  sdk-release-minor  - Release minor version (1.x.0)"
+	@echo "  sdk-release-major  - Release major version (x.0.0)"
 	@echo "  sdk-clean          - Clean SDK build artifacts"
 	@echo ""
 
