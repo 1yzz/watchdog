@@ -170,7 +170,5 @@ export class WatchdogClient {
   }
 }
 
-// Re-export protobuf types for convenience
+// Re-export protobuf types dynamically for convenience
 export { pb as ProtobufTypes };
-export type ServiceType = pb.ServiceType;
-export type ServiceInfo = pb.ServiceInfo;
